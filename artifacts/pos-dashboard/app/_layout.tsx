@@ -57,6 +57,11 @@ function RootLayoutNav() {
       <Stack.Screen name="help/index"           options={{ headerShown: false, animation: "slide_from_right" }} />
       <Stack.Screen name="store-settings/index"    options={{ headerShown: false, animation: "slide_from_right" }} />
       <Stack.Screen name="receipt-settings/index" options={{ headerShown: false, animation: "slide_from_right" }} />
+      <Stack.Screen name="help/guide"             options={{ headerShown: false, animation: "slide_from_right" }} />
+      <Stack.Screen name="help/videos"            options={{ headerShown: false, animation: "slide_from_right" }} />
+      <Stack.Screen name="help/terms"             options={{ headerShown: false, animation: "slide_from_right" }} />
+      <Stack.Screen name="help/privacy"           options={{ headerShown: false, animation: "slide_from_right" }} />
+      <Stack.Screen name="help/licenses"          options={{ headerShown: false, animation: "slide_from_right" }} />
     </Stack>
   );
 }

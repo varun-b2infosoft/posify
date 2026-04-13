@@ -74,9 +74,27 @@ const CONTACT_ITEMS = [
 ];
 
 const RESOURCE_ITEMS = [
-  { icon: "book-open" as const, label: "User Guide",       sub: "Step-by-step tutorials" },
-  { icon: "video"     as const, label: "Video Tutorials",  sub: "Watch how-to videos" },
-  { icon: "globe"     as const, label: "Visit Website",    sub: "www.posify.in" },
+  {
+    icon: "book-open" as const,
+    label: "User Guide",
+    sub: "Step-by-step tutorials",
+    color: "#4F46E5",
+    onPress: () => router.push("/help/guide" as any),
+  },
+  {
+    icon: "video" as const,
+    label: "Video Tutorials",
+    sub: "Watch how-to videos",
+    color: "#EF4444",
+    onPress: () => router.push("/help/videos" as any),
+  },
+  {
+    icon: "globe" as const,
+    label: "Visit Website",
+    sub: "www.posify.in",
+    color: "#10B981",
+    onPress: () => Linking.openURL("https://posify.in").catch(() => Linking.openURL("https://google.com/search?q=posify+pos+app")),
+  },
 ];
 
 export default function HelpScreen() {
@@ -177,17 +195,17 @@ export default function HelpScreen() {
             <TouchableOpacity
               key={item.label}
               style={[styles.listRow, { borderTopColor: colors.border, borderTopWidth: i === 0 ? 0 : 1 }]}
-              onPress={() => Alert.alert(item.label, "Coming soon")}
+              onPress={item.onPress}
               activeOpacity={0.7}
             >
-              <View style={[styles.listIcon, { backgroundColor: colors.primary + "12" }]}>
-                <Feather name={item.icon} size={16} color={colors.primary} />
+              <View style={[styles.listIcon, { backgroundColor: item.color + "15" }]}>
+                <Feather name={item.icon} size={16} color={item.color} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={[styles.listLabel, { color: colors.foreground, fontFamily: "Inter_600SemiBold" }]}>{item.label}</Text>
                 <Text style={[styles.listSub, { color: colors.mutedForeground, fontFamily: "Inter_400Regular" }]}>{item.sub}</Text>
               </View>
-              <Feather name="chevron-right" size={15} color={colors.mutedForeground} />
+              <Feather name={item.icon === "globe" ? "external-link" : "chevron-right"} size={15} color={item.color} />
             </TouchableOpacity>
           ))}
         </View>
@@ -202,9 +220,9 @@ export default function HelpScreen() {
 
           <View style={styles.aboutLinks}>
             {[
-              { label: "Terms of Service", onPress: () => Alert.alert("Terms", "Coming soon") },
-              { label: "Privacy Policy",   onPress: () => Alert.alert("Privacy", "Coming soon") },
-              { label: "Licenses",         onPress: () => Alert.alert("Licenses", "Coming soon") },
+              { label: "Terms of Service", onPress: () => router.push("/help/terms"    as any) },
+              { label: "Privacy Policy",   onPress: () => router.push("/help/privacy"  as any) },
+              { label: "Licenses",         onPress: () => router.push("/help/licenses" as any) },
             ].map((link) => (
               <TouchableOpacity key={link.label} onPress={link.onPress} activeOpacity={0.7}>
                 <Text style={[styles.aboutLink, { color: colors.primary, fontFamily: "Inter_500Medium" }]}>{link.label}</Text>
