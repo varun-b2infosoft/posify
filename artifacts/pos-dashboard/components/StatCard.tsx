@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View, ViewStyle } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
 
@@ -10,15 +10,16 @@ interface StatCardProps {
   subtext: string;
   icon: string;
   accentColor?: string;
+  style?: ViewStyle;
 }
 
-export function StatCard({ title, value, trend, subtext, icon, accentColor }: StatCardProps) {
+export function StatCard({ title, value, trend, subtext, icon, accentColor, style }: StatCardProps) {
   const colors = useColors();
   const isPositive = trend >= 0;
   const trendColor = isPositive ? colors.success : colors.destructive;
 
   return (
-    <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+    <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }, style]}>
       <View style={styles.header}>
         <View style={[styles.iconWrap, { backgroundColor: accentColor ? accentColor + "20" : colors.secondary }]}>
           <Feather name={icon as any} size={16} color={accentColor || colors.primary} />
