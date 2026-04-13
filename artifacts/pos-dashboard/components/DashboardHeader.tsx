@@ -11,6 +11,7 @@ import { Feather } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFocusEffect } from "expo-router";
 import { useColors } from "@/hooks/useColors";
+import { useLayout } from "@/hooks/useLayout";
 import { getShops, getSelectedShopId, setSelectedShop, subscribeShops, Shop } from "@/store/shops";
 
 const DATE_RANGES = ["Today", "Week", "Month"] as const;
@@ -25,6 +26,7 @@ interface DashboardHeaderProps {
 
 export function DashboardHeader({ selectedRange, onRangeChange, notifCount, onMenuPress }: DashboardHeaderProps) {
   const colors      = useColors();
+  const layout      = useLayout();
   const insets      = useSafeAreaInsets();
   const topPad      = Platform.OS === "web" ? 67 : insets.top;
 
@@ -60,11 +62,13 @@ export function DashboardHeader({ selectedRange, onRangeChange, notifCount, onMe
   return (
     <>
       <View style={[styles.container, { paddingTop: topPad + 10, backgroundColor: colors.primary }]}>
-        <View style={styles.row}>
+        <View style={[styles.row, layout.isWide && { maxWidth: layout.maxContentWidth, alignSelf: "center", width: "100%" }]}>
           <View style={styles.left}>
-            <TouchableOpacity onPress={onMenuPress} style={styles.hamburger}>
-              <Feather name="menu" size={22} color="#fff" />
-            </TouchableOpacity>
+            {!layout.isWide && (
+              <TouchableOpacity onPress={onMenuPress} style={styles.hamburger}>
+                <Feather name="menu" size={22} color="#fff" />
+              </TouchableOpacity>
+            )}
             <View>
               <View style={styles.logoRow}>
                 <Feather name="shopping-bag" size={16} color="rgba(255,255,255,0.9)" />
