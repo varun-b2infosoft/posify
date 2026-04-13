@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFocusEffect } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
+import { useLayout } from "@/hooks/useLayout";
 import { Sidebar } from "@/components/Sidebar";
 import { PaymentModal } from "@/components/PaymentModal";
 import {
@@ -276,10 +277,11 @@ function WeightInputModal({
 
 export default function POSScreen() {
   const colors    = useColors();
+  const layout    = useLayout();
   const insets    = useSafeAreaInsets();
   const topPad    = Platform.OS === "web" ? 67 : insets.top;
   const bottomPad = Platform.OS === "web" ? 0  : insets.bottom;
-  const TAB_BAR_H = Platform.OS === "web" ? 84 : 49;
+  const TAB_BAR_H = Platform.OS === "web" ? (layout.isWide ? 0 : 84) : 49;
   const cartBottom = TAB_BAR_H + bottomPad;
 
   const [allProducts,    setAllProducts]    = useState<StoreProduct[]>(() => getProducts());
@@ -448,9 +450,11 @@ export default function POSScreen() {
 
       {/* Header */}
       <View style={[styles.header, { paddingTop: topPad + 8, backgroundColor: colors.primary }]}>
-        <TouchableOpacity onPress={() => setSidebarOpen(true)} style={styles.hamburger}>
-          <Feather name="menu" size={22} color="#fff" />
-        </TouchableOpacity>
+        {!layout.isWide && (
+          <TouchableOpacity onPress={() => setSidebarOpen(true)} style={styles.hamburger}>
+            <Feather name="menu" size={22} color="#fff" />
+          </TouchableOpacity>
+        )}
         <Text style={[styles.headerTitle, { fontFamily: "Inter_700Bold" }]}>POS</Text>
         <TouchableOpacity onPress={() => router.push("/(tabs)/" as any)}>
           <Feather name="home" size={20} color="rgba(255,255,255,0.8)" />
