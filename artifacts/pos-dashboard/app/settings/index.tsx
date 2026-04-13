@@ -14,7 +14,9 @@ import { Feather } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
 import { useTheme } from "@/hooks/useTheme";
+import { useThemeColor } from "@/hooks/useThemeColor";
 import { ThemeMode } from "@/store/theme";
+import { ACCENT_OPTIONS } from "@/store/themeColor";
 
 type SyncStatus = "synced" | "pending" | "syncing" | "error";
 const STATUS_COLORS: Record<SyncStatus, string> = {
@@ -43,8 +45,9 @@ const THEME_OPTIONS: { value: ThemeMode; label: string; icon: string }[] = [
 ];
 
 export default function SettingsScreen() {
-  const colors  = useColors();
-  const { mode, setMode } = useTheme();
+  const colors              = useColors();
+  const { mode, setMode }   = useTheme();
+  const { accentId, setAccentId } = useThemeColor();
   const insets  = useSafeAreaInsets();
   const topPad  = Platform.OS === "web" ? 67 : insets.top;
   const botPad  = Platform.OS === "web" ? 24 : insets.bottom + 16;
@@ -96,10 +99,11 @@ export default function SettingsScreen() {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={[styles.cardTitle, { color: colors.foreground, fontFamily: "Inter_700Bold" }]}>Appearance</Text>
-              <Text style={[styles.cardSub, { color: colors.mutedForeground, fontFamily: "Inter_400Regular" }]}>Choose your preferred color scheme</Text>
+              <Text style={[styles.cardSub, { color: colors.mutedForeground, fontFamily: "Inter_400Regular" }]}>Color scheme and theme color</Text>
             </View>
           </View>
 
+          {/* Dark / Light / System toggle */}
           <View style={[styles.segmentContainer, { backgroundColor: colors.muted, borderColor: colors.border }]}>
             {THEME_OPTIONS.map(({ value, label, icon }) => {
               const active = mode === value;
@@ -113,11 +117,7 @@ export default function SettingsScreen() {
                   onPress={() => setMode(value)}
                   activeOpacity={0.7}
                 >
-                  <Feather
-                    name={icon as any}
-                    size={14}
-                    color={active ? colors.primary : colors.mutedForeground}
-                  />
+                  <Feather name={icon as any} size={14} color={active ? colors.primary : colors.mutedForeground} />
                   <Text style={[
                     styles.segmentLabel,
                     { fontFamily: active ? "Inter_700Bold" : "Inter_400Regular" },
@@ -137,6 +137,59 @@ export default function SettingsScreen() {
               ? "Dark mode is on — easier on the eyes at night"
               : "Light mode is on — bright and clear"}
           </Text>
+
+          {/* ── Theme Color ── */}
+          <View style={[styles.divider, { backgroundColor: colors.border }]} />
+
+          <View style={styles.colorHeader}>
+            <View style={[styles.colorDot, { backgroundColor: colors.primary }]} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.colorLabel, { color: colors.foreground, fontFamily: "Inter_600SemiBold" }]}>Theme Color</Text>
+              <Text style={[styles.colorSub, { color: colors.mutedForeground, fontFamily: "Inter_400Regular" }]}>
+                {ACCENT_OPTIONS.find(a => a.id === accentId)?.name ?? "Indigo"}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.swatchRow}>
+            {ACCENT_OPTIONS.map(opt => {
+              const isSelected = accentId === opt.id;
+              const swatchColor = opt.light;
+              return (
+                <TouchableOpacity
+                  key={opt.id}
+                  style={[
+                    styles.swatch,
+                    { backgroundColor: swatchColor },
+                    isSelected && { borderWidth: 3, borderColor: swatchColor },
+                  ]}
+                  onPress={() => setAccentId(opt.id)}
+                  activeOpacity={0.75}
+                >
+                  {isSelected && (
+                    <View style={styles.swatchCheck}>
+                      <Feather name="check" size={10} color="#fff" />
+                    </View>
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          <View style={styles.swatchPreview}>
+            {ACCENT_OPTIONS.map(opt => (
+              <Text
+                key={opt.id}
+                style={[
+                  styles.swatchName,
+                  { color: accentId === opt.id ? colors.primary : colors.mutedForeground,
+                    fontFamily: accentId === opt.id ? "Inter_700Bold" : "Inter_400Regular" },
+                ]}
+              >
+                {opt.name}
+              </Text>
+            ))}
+          </View>
         </View>
 
         {/* ── Backup ── */}
@@ -235,7 +288,7 @@ export default function SettingsScreen() {
             <TouchableOpacity
               key={item.label}
               style={[styles.listRow, { borderTopColor: colors.border, borderTopWidth: i === 0 ? 0 : 1 }]}
-              onPress={() => Alert.alert(item.label, "Coming soon")}
+              onPress={(item as any).onPress ?? (() => Alert.alert(item.label, "Coming soon"))}
             >
               <View style={[styles.listIcon, { backgroundColor: colors.primary + "12" }]}>
                 <Feather name={item.icon as any} size={15} color={colors.primary} />
@@ -285,6 +338,50 @@ const styles = StyleSheet.create({
   },
   segmentLabel:    { fontSize: 13 },
   appearanceHint:  { fontSize: 12, textAlign: "center" },
+
+  divider:         { height: 1, marginHorizontal: -14 },
+
+  colorHeader:     { flexDirection: "row", alignItems: "center", gap: 10 },
+  colorDot:        { width: 18, height: 18, borderRadius: 9 },
+  colorLabel:      { fontSize: 14 },
+  colorSub:        { fontSize: 12, marginTop: 1 },
+
+  swatchRow: {
+    flexDirection: "row",
+    gap: 10,
+    flexWrap: "wrap",
+  },
+  swatch: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.18,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
+  },
+  swatchCheck: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: "rgba(0,0,0,0.25)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  swatchPreview: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+  },
+  swatchName: {
+    fontSize: 9,
+    width: 34,
+    textAlign: "center",
+  },
 
   statusRow:       { flexDirection: "row", alignItems: "center", gap: 10, padding: 12 },
   statusLabel:     { fontSize: 13 },
