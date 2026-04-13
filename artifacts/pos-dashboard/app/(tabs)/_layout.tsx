@@ -8,6 +8,8 @@ import React from "react";
 import { Platform, StyleSheet, View, useColorScheme } from "react-native";
 
 import { useColors } from "@/hooks/useColors";
+import { useLayout } from "@/hooks/useLayout";
+import { DesktopNav } from "@/components/DesktopNav";
 
 function NativeTabLayout() {
   return (
@@ -37,27 +39,32 @@ function NativeTabLayout() {
 }
 
 function ClassicTabLayout() {
-  const colors = useColors();
+  const colors      = useColors();
+  const layout      = useLayout();
   const colorScheme = useColorScheme();
-  const isDark = colorScheme === "dark";
-  const isIOS = Platform.OS === "ios";
-  const isWeb = Platform.OS === "web";
+  const isDark      = colorScheme === "dark";
+  const isIOS       = Platform.OS === "ios";
+  const isWeb       = Platform.OS === "web";
+  const isWide      = layout.isWide;
 
-  return (
+  const tabBar = (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: colors.primary,
+        tabBarActiveTintColor:   colors.primary,
         tabBarInactiveTintColor: colors.mutedForeground,
         headerShown: false,
-        tabBarStyle: {
-          position: "absolute",
-          backgroundColor: isIOS ? "transparent" : colors.background,
-          borderTopWidth: isWeb ? 1 : 0,
-          borderTopColor: colors.border,
-          elevation: 0,
-          ...(isWeb ? { height: 84 } : {}),
-        },
+        tabBarStyle: isWide
+          ? { display: "none" }
+          : {
+              position: "absolute",
+              backgroundColor: isIOS ? "transparent" : colors.background,
+              borderTopWidth: isWeb ? 1 : 0,
+              borderTopColor: colors.border,
+              elevation: 0,
+              ...(isWeb ? { height: 84 } : {}),
+            },
         tabBarBackground: () =>
+          isWide ? null :
           isIOS ? (
             <BlurView
               intensity={100}
@@ -136,6 +143,17 @@ function ClassicTabLayout() {
       />
     </Tabs>
   );
+
+  if (!isWide) return tabBar;
+
+  return (
+    <View style={styles.wideRoot}>
+      <DesktopNav />
+      <View style={styles.wideContent}>
+        {tabBar}
+      </View>
+    </View>
+  );
 }
 
 export default function TabLayout() {
@@ -144,3 +162,8 @@ export default function TabLayout() {
   }
   return <ClassicTabLayout />;
 }
+
+const styles = StyleSheet.create({
+  wideRoot:    { flex: 1, flexDirection: "row" },
+  wideContent: { flex: 1, overflow: "hidden" },
+});
