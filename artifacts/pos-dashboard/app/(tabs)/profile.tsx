@@ -125,10 +125,10 @@ export default function ProfileScreen() {
   const SETTINGS_ITEMS = [
     { icon: "bell",        label: "Notifications",   sub: unreadCount > 0 ? `${unreadCount} unread` : "Alerts & reminders",        badge: unreadCount > 0 ? String(unreadCount) : null, badgeColor: "#EF4444", onPress: () => router.push("/notifications" as any) },
     { icon: "cloud",       label: "Backup & Sync",   sub: "Auto backup on · Last: Today 2 AM",   onPress: () => router.push("/settings" as any) },
-    { icon: "home",        label: "Store Settings",  sub: "Name, location, currency" },
-    { icon: "printer",     label: "Receipt Settings",sub: "Configure print layout" },
-    { icon: "shield",      label: "Security",        sub: "PIN, permissions" },
-    { icon: "help-circle", label: "Help & Support",  sub: "FAQs, contact us" },
+    { icon: "home",        label: "Store Settings",  sub: "Name, location, currency", onPress: () => router.push("/store-settings" as any) },
+    { icon: "printer",     label: "Receipt Settings",sub: "Configure print layout", onPress: () => router.push("/receipt-settings" as any) },
+    { icon: "shield",      label: "Security",        sub: "PIN, permissions",   onPress: () => router.push("/security" as any) },
+    { icon: "help-circle", label: "Help & Support",  sub: "FAQs, contact us",   onPress: () => router.push("/help" as any) },
   ];
 
   return (

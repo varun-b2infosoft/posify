@@ -39,7 +39,7 @@ export default function ReturnsScreen() {
     return true;
   }).filter(inv =>
     inv.customerName.toLowerCase().includes(query.toLowerCase()) ||
-    inv.invoiceNumber.toLowerCase().includes(query.toLowerCase())
+    inv.invoiceNo.toLowerCase().includes(query.toLowerCase())
   );
 
   const returnedCount   = invoices.filter(i => i.returned).length;
@@ -153,7 +153,7 @@ function ReturnRow({ inv, colors, onReturn }: { inv: Invoice; colors: any; onRet
         </View>
         <View style={{ flex: 1 }}>
           <Text style={[styles.invNum, { color: colors.foreground, fontFamily: "Inter_600SemiBold" }]}>
-            {inv.invoiceNumber}
+            {inv.invoiceNo}
           </Text>
           <Text style={[styles.invCustomer, { color: colors.mutedForeground, fontFamily: "Inter_400Regular" }]}>
             {inv.customerName} · {new Date(inv.date).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}

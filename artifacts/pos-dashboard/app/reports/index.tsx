@@ -30,18 +30,20 @@ const CAT_DATA = [
   { label: "Other",        value: 4,  color: "#6B7280" },
 ];
 
+const BAR_MAX_H = 64;
 function MiniBarChart({ data, days, color }: { data: number[]; days: string[]; color: string }) {
   const mx = Math.max(...data);
   return (
-    <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 6, height: 80 }}>
-      {data.map((v, i) => (
-        <View key={i} style={{ flex: 1, alignItems: "center", gap: 4 }}>
-          <View style={{ flex: 1, width: "100%", justifyContent: "flex-end" }}>
-            <View style={{ height: `${Math.round((v / mx) * 100)}%`, backgroundColor: color, borderRadius: 4, opacity: i === data.length - 1 ? 1 : 0.55 }} />
+    <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 4, height: BAR_MAX_H + 18 }}>
+      {data.map((v, i) => {
+        const barH = Math.max(4, Math.round((v / mx) * BAR_MAX_H));
+        return (
+          <View key={i} style={{ flex: 1, alignItems: "center", gap: 4, justifyContent: "flex-end", height: BAR_MAX_H + 18 }}>
+            <View style={{ width: "72%", height: barH, backgroundColor: color, borderRadius: 4, opacity: i === data.length - 1 ? 1 : 0.5 }} />
+            <Text style={{ fontSize: 9, color: "#6B7280", fontFamily: "Inter_400Regular" }}>{days[i]}</Text>
           </View>
-          <Text style={{ fontSize: 9, color: "#6B7280", fontFamily: "Inter_400Regular" }}>{days[i]}</Text>
-        </View>
-      ))}
+        );
+      })}
     </View>
   );
 }
