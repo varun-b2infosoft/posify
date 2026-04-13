@@ -11,6 +11,7 @@ import { Feather } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
+import { useLayout } from "@/hooks/useLayout";
 import { getShops, getStaff, subscribeShops } from "@/store/shops";
 import { getTransfers, subscribeTransfers } from "@/store/transfers";
 import { getExpenses, subscribeExpenses } from "@/store/expenses";
@@ -20,6 +21,7 @@ import { getUnreadCount, subscribeNotifications } from "@/store/notifications";
 
 export default function ProfileScreen() {
   const colors  = useColors();
+  const layout  = useLayout();
   const insets  = useSafeAreaInsets();
   const topPad  = Platform.OS === "web" ? 67 : insets.top;
   const botPad  = Platform.OS === "web" ? 34 : insets.bottom;
@@ -146,7 +148,11 @@ export default function ProfileScreen() {
       </View>
 
       <ScrollView
-        contentContainerStyle={[styles.content, { paddingBottom: botPad + 100 }]}
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: botPad + 100 },
+          layout.isWide && { maxWidth: layout.maxContentWidth, alignSelf: "center", width: "100%" },
+        ]}
         showsVerticalScrollIndicator={false}
       >
         {/* Profile card */}
