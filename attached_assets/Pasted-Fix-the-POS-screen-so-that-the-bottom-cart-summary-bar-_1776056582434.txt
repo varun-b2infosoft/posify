@@ -1,0 +1,72 @@
+Fix the POS screen so that the bottom cart summary bar is always visible once an item is added.
+The current implementation fails because the cart is either hidden, not rendered, or placed inside a scrollable layout.
+
+🚨 Core Requirement (Non-negotiable)
+
+The cart summary MUST be persistently visible, fixed at the bottom, and NOT inside the product scroll.
+
+🧱 Layout Fix (Critical)
+Use this structure:
+Root: Stack
+Layer 1: Product content (scrollable grid)
+Layer 2: Bottom cart panel (fixed / positioned)
+🛒 Bottom Cart Panel Behavior
+✅ Visibility Rule:
+Hidden when cart is empty
+Appears instantly when first product is added
+Slides up from bottom (animation ~200ms)
+📦 Collapsed State (Default)
+
+Height: ~80px
+Position: fixed above bottom navigation
+
+Layout:
+Left:
+Cart icon with red badge (item count)
+Text: “X items”
+Center:
+Total price (bold, large)
+Right:
+Expand chevron (⌃)
+Green “Pay” button
+🔽 Expanded State
+
+Height: ~350–400px
+Expands upward (pushes grid visually, not overlay full screen)
+
+Must include:
+Cart item list:
+Product name
+Unit price
+Quantity controls (− / +)
+Delete icon (right side)
+Summary:
+Subtotal
+GST (18%)
+Total (bold, highlighted)
+CTA:
+Full-width “Proceed to Pay · ₹X” button
+🎬 Animations (Required)
+Panel slides up when first item added
+Expand/collapse animates smoothly
+Chevron rotates 180° on expand
+❌ Common Mistakes to Avoid
+DO NOT place cart inside SingleChildScrollView / FlatList
+DO NOT hide cart behind navigation bar
+DO NOT rely only on floating button
+DO NOT require user to “open cart” to see total
+🛍️ Product Grid Constraint Fix
+Ensure grid has bottom padding equal to cart height
+Prevent last row from being hidden behind cart
+⚡ Functional Flow
+Tap product → item added instantly
+Cart panel appears immediately
+User sees total without searching
+Tap Pay OR expand → Proceed
+Payment modal opens
+🧠 Debug Checklist (Agent must verify)
+ Cart visible after adding item
+ Not inside scroll view
+ Not overlapped by bottom nav
+ Expand works
+ Total updates in real-time

@@ -1,0 +1,127 @@
+Redesign the Products module to include:
+
+Improved product list (with images + better hierarchy)
+Product detail screen
+Product edit/create screen
+
+The experience should feel fast, structured, and scalable for inventory management.
+
+🛍️ 1. Products List Screen (Upgrade)
+🧱 Layout Improvements
+Replace current row with:
+[ Product Image ]  Name
+                   SKU • Category
+                   Stock badge
+
+                 ₹ Price
+✅ Must Add
+🖼️ Product Image
+Left side (48x48 or 56x56)
+Rounded corners
+Fallback icon if no image
+📦 Product Info
+Name (bold)
+SKU + Category (subtext)
+Price (right aligned, bold)
+📊 Stock Indicator (Better UX)
+
+Use color-coded pill:
+
+🟢 Green → In stock (e.g. 24 pcs)
+🟡 Orange → Low stock (≤5)
+🔴 Red → Critical / kg-based low
+💡 Interaction
+Tap → Open Product Detail Page
+Long press → Quick actions (Edit / Delete)
+➕ Floating Add Button (Fix it)
+Keep top "+" but ALSO:
+Add floating FAB (bottom right) → “+ Add Product”
+🔍 2. Product Detail Screen (New Screen)
+
+This is missing completely—and it’s critical.
+
+🧱 Layout
+🖼️ Top Section
+Large product image (full width or card)
+Fallback if not available
+📦 Info Section
+Product Name
+₹ Price
+
+SKU: FB-001
+Category: Food & Bev
+Unit: pcs / kg
+
+Stock: 24 pcs (green badge)
+📊 Analytics (Optional but powerful)
+Total sold
+Revenue generated
+Last sold date
+⚡ Actions (Sticky Bottom)
+
+Buttons:
+
+✏️ Edit Product
+🗑 Delete Product
+(Optional) View Transactions
+✏️ 3. Product Edit / Add Screen
+
+This is where most apps become painful. Don’t.
+
+🧱 Form Structure
+Basic Info
+Product Name (text)
+Price (numeric)
+SKU (auto/manual)
+Category & Unit
+Category dropdown
+Unit type:
+pcs / kg / litre
+Stock
+Quantity input
+Low stock threshold
+🖼️ Image Upload
+Upload / camera option
+Preview shown
+💡 UX Rules
+Use grouped sections (cards)
+Labels always visible (no placeholder-only inputs)
+Large touch-friendly inputs
+✅ Actions
+Save (primary button)
+Cancel
+Delete (if editing)
+🎨 Design Enhancements
+Visual Upgrade:
+Add slight elevation to list items
+Increase spacing between rows
+Use icons for category (optional but nice)
+Typography:
+Product name → medium bold
+Price → bold, colored (primary)
+Meta → light grey
+⚡ Advanced UX (Optional but 🔥)
+Swipe left → Edit / Delete
+Search by:
+Name
+SKU
+Barcode
+Filter:
+Low stock
+Category
+Bulk edit mode (long press multiple)
+🧠 Reality Check
+
+Right now your screen is:
+
+“Static inventory list”
+
+You want:
+
+“Operational control panel”
+
+User should:
+
+Find product in <1 sec
+Edit in <2 taps
+Understand stock instantly

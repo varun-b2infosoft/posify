@@ -1,0 +1,8 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "Om8NbB2Ur9mQ4cSLElNqd"
+uri = "file://artifacts/pos-dashboard/assets/images/icon.png"
+type = "image"
+title = "pos dashboard app icon"

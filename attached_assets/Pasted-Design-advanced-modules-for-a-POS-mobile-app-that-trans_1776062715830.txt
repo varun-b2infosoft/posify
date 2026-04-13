@@ -1,0 +1,171 @@
+Design advanced modules for a POS mobile app that transform it into a complete business management system.
+
+The modules include:
+
+Reports & Analytics
+Expense Management
+Customer Management (CRM)
+Credit (Udhaar) System
+Invoice System
+Notifications
+Backup & Sync Settings
+
+The UI should be clean, data-driven, and fast to use, optimized for real shop owners.
+
+📊 1. Reports & Analytics Screen
+🧱 Layout
+Top:
+Date filter: Today / Week / Month / Custom
+Shop selector dropdown
+📈 Sections
+💰 Revenue & Profit
+Total Sales
+Total Purchases
+Total Expenses
+Net Profit (highlighted)
+📊 Charts
+Sales trend (line chart)
+Category distribution (pie chart)
+🏆 Insights
+Top selling products
+Least selling products
+Best performing shop
+Staff performance
+
+💡 UX:
+
+Cards + charts
+Easy to scan in <3 seconds
+💸 2. Expense Management
+📋 Expense List
+
+Each item:
+
+Expense Name
+Category (Rent / Salary / Utilities)
+Amount
+Date
+➕ Add Expense
+
+Fields:
+
+Title
+Amount
+Category dropdown
+Date
+Notes
+💡 Features:
+Filter by category
+Monthly total shown on top
+👤 3. Customer Management (CRM)
+📋 Customer List
+Name
+Phone
+Total Purchases
+Outstanding Balance
+➕ Add Customer
+
+Fields:
+
+Name
+Phone
+Email (optional)
+🔍 Customer Detail Screen
+Purchase history
+Total spent
+Credit balance
+💳 4. Credit / Udhaar System
+📋 Credit Ledger
+Customer Name
+Total Due ₹
+Last Transaction Date
+🔍 Customer Credit Detail
++ Sale ₹500
+- Payment ₹200
+Balance ₹300
+💡 Actions:
+Add payment
+Add credit sale
+⚡ UX:
+Show clear running balance
+Use red (due) / green (paid)
+🧾 5. Invoice System
+📄 After Sale
+Auto-generate invoice
+Invoice Layout:
+Shop Name
+Customer Name
+Items List
+Subtotal
+GST
+Total
+💡 Features:
+Download PDF
+Share (WhatsApp / Email)
+Print (optional)
+📜 Invoice History
+List of all invoices
+Filter by date / customer
+🔔 6. Notifications System
+📋 Notification List
+Low stock alert
+Stock transfer completed
+Payment received
+Daily summary
+💡 Behavior:
+Real-time alerts
+Badge count on icon
+☁️ 7. Backup & Sync Settings
+🧱 Layout
+Sections:
+🔐 Account
+Login / Logout
+Profile info
+☁️ Backup
+Last backup time
+Manual backup button
+Auto backup toggle
+🔄 Sync
+Sync status
+Retry sync
+💡 UX:
+Show status clearly:
+Synced ✅
+Pending ⚠️
+🔄 8. Returns & Refunds (Bonus but Important)
+📋 Return Screen
+Select invoice
+Select items
+Enter quantity
+💡 Behavior:
+Adjust stock automatically
+Update sales record
+🎨 Design Guidelines
+Use cards for sections
+Keep spacing clean
+Highlight money values
+Use:
+Green → profit / success
+Red → loss / dues
+⚡ UX Rules (Non-Negotiable)
+Add expense in ≤2 taps
+View profit instantly
+Record credit without confusion
+Generate invoice automatically
+No clutter, no overthinking
+🧠 Core Philosophy
+
+You are building:
+
+POS → Transactions
+Reports → Insight
+Credit → Trust
+Expenses → Truth
+
+Without these:
+
+It’s just a billing app.
+
+With these:
+
+It becomes a business control system

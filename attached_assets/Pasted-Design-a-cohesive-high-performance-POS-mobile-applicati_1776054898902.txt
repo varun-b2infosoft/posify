@@ -1,0 +1,164 @@
+Design a cohesive, high-performance POS mobile application UI flow connecting the Dashboard, Sidebar Navigation, and Sell Items (POS) screen.
+
+The experience should feel seamless, fast, and business-focused, allowing users to move from insights → action (selling) in under 2 taps.
+
+🧱 Global App Structure
+Use a persistent navigation system
+Sidebar (drawer) accessible from all screens
+Bottom navigation optional (Dashboard + POS priority)
+Maintain consistent design language across all screens
+🏠 Screen 1: Dashboard (Entry Point)
+Purpose:
+
+Give a quick business overview + fast entry into selling flow
+
+Key UX Addition:
+Add a primary CTA button: “Start Selling”
+Positioned prominently (top or floating button)
+On tap → opens POS screen instantly
+Quick Actions Row:
+New Sale
+Add Product
+View Orders
+
+💡 Insight:
+Dashboard isn’t just for stats—it should push user into action (POS)
+
+☰ Sidebar Navigation (Global Drawer)
+Trigger:
+Hamburger icon in header (Dashboard & POS)
+Swipe from left
+Sidebar Content:
+👤 Top Section:
+Profile avatar
+Shop name
+Active shop selector dropdown
+📋 Menu Items:
+Dashboard
+POS (Sell Items) ⭐ (highlighted / most used)
+Products
+Purchases
+Stock Transfer
+Invoices
+Shops Management
+Profile / Settings
+💡 Design:
+Clean vertical list
+Icons + labels
+Active screen highlighted with accent color
+Slight dark overlay when open
+⚡ UX Rules:
+Opening sidebar should NOT feel heavy
+Tap POS → instant navigation (no delay, no reload feel)
+🔄 Transition: Dashboard → POS
+Tap:
+“Start Selling” OR
+POS from sidebar
+Animation:
+Smooth slide or fade (fast, <200ms)
+No dramatic transitions—this is a tool, not a movie
+🛒 Screen 2: POS (Sell Items Screen)
+🎯 Core Philosophy:
+
+Speed > Beauty
+This is where money happens.
+
+🧱 Layout Structure
+Top: Search + Quick Actions
+Middle: Product Grid
+Bottom: Cart + Checkout (sticky)
+🔍 Section 1: Search & Quick Access
+Large search bar:
+“Search product / Scan barcode”
+Barcode icon inside
+Filter button
+
+💡 UX:
+
+Auto-focus optional
+Instant search results
+🗂️ Section 2: Category Tabs
+Horizontal scroll
+Sticky under search
+Active tab clearly visible
+🛍️ Section 3: Product Grid
+2-column grid
+Product card:
+Image
+Name (1 line)
+Price
+Stock indicator
+
+💡 Interaction:
+
+Tap → add instantly
+No popup nonsense
+Long press → edit quantity/details
+🛒 Section 4: Cart Panel (Sticky Bottom)
+Default (Collapsed):
+Items count
+Total price (large & bold)
+Expanded:
+Product list:
+Name
+Qty (+ / -)
+Price
+Remove button
+
+💡 UX:
+
+Instant updates (no lag)
+Quantity tap zones large
+💳 Section 5: Checkout Actions
+Primary: Checkout (dominant button)
+Secondary:
+Hold Order
+Clear Cart
+Apply Discount
+💰 Section 6: Payment Modal
+
+Slide-up modal:
+
+Total Amount (big)
+Payment:
+Cash
+UPI
+Card
+Cash input → auto change calculation
+
+💡 UX:
+
+One-tap completion
+Immediate success feedback
+🔁 Back Navigation (POS → Dashboard)
+Back button OR sidebar
+Preserve cart state (important!)
+Returning to dashboard should feel instant
+🎨 Unified Design System
+Colors:
+Primary: Deep blue / purple
+Success: Green
+Danger: Red
+Typography:
+Bold for money values
+Cards:
+Rounded + soft shadow
+Spacing:
+Airy but efficient
+⚡ Performance Rules (Non-Negotiable)
+Add product: 1 tap
+Checkout: ≤ 3 taps
+Screen load: instant feel
+Animations: <200ms
+No blocking loaders
+🧠 Smart UX Touches
+Show “Recent Items” in POS
+Highlight “Low Stock” directly in grid
+Auto-switch to last used category
+Haptic feedback on add-to-cart
+🔥 Core Flow Philosophy
+
+Dashboard shows what happened
+POS lets you make it happen again
+
+If the user needs to “think” before selling—you’ve already lost.

@@ -1,0 +1,124 @@
+Design a high-performance, touch-optimized POS (Sell Items) screen for a mobile application. This screen must prioritize speed, clarity, and minimal taps—users should be able to complete a sale in seconds.
+
+🧱 Layout Structure
+Split layout:
+Top: Search + Quick Actions
+Middle: Product Grid
+Bottom: Cart Summary + Checkout
+Sticky bottom checkout bar (always visible)
+🔍 Section 1: Search & Quick Access
+Large search bar:
+Placeholder: “Search product / Scan barcode”
+Barcode scan icon inside search
+Filter / category button next to search
+
+💡 Design:
+
+Rounded input
+Slight shadow
+Instant feedback typing
+🗂️ Section 2: Category Tabs
+Horizontal scroll tabs:
+All, Beverages, Snacks, Dairy, etc.
+Active tab highlighted
+
+💡 UX:
+
+Quick switching without reload lag
+Sticky below search
+🛍️ Section 3: Product Grid
+Grid layout (2 columns mobile)
+Each product card includes:
+Product image
+Name (1 line max)
+Price (₹)
+Stock indicator (small text or dot)
+
+💡 Interaction:
+
+Tap = add to cart instantly
+Long press = open product detail/edit quantity
+
+💡 Design:
+
+Clean cards
+Slight elevation
+Fast tap feedback
+🛒 Section 4: Cart Panel (Bottom Section)
+
+Sticky, always visible.
+
+Shows:
+Total items count
+Total price (bold, large)
+Expandable cart preview
+
+When expanded:
+
+List of added items:
+Name
+Quantity controls (+ / -)
+Price per item
+Remove (trash icon)
+
+💡 UX:
+
+Quantity change should be instant (no lag)
+Swipe to delete (optional but slick)
+💳 Section 5: Checkout Actions
+
+Inside bottom bar:
+
+Primary Button: “Checkout”
+Secondary quick buttons:
+Hold Order
+Clear Cart
+Apply Discount
+
+💡 Design:
+
+Checkout button = dominant (full width or large)
+Use strong color (green or primary brand)
+💰 Section 6: Payment Modal (After Checkout Tap)
+
+Slide-up modal with:
+
+Total Amount (big, bold)
+Payment methods:
+Cash
+UPI
+Card
+Input field (for cash received)
+Auto calculate change
+
+💡 UX:
+
+One-tap payment selection
+Show success state immediately
+⚡ Speed Features (Critical)
+Add product in 1 tap
+Checkout in 2–3 taps max
+No unnecessary confirmations
+Smooth animations (<200ms)
+⚠️ Edge UX Cases
+Out of stock → disable or show warning
+Low stock → small alert badge
+Duplicate add → increase quantity instead of new row
+🎨 Design Style
+Clean, minimal, zero clutter
+Colors:
+Background: light neutral
+Primary: deep blue/purple
+CTA: green (checkout)
+Typography:
+Big numbers for price
+Simple readable font
+🧠 Advanced UX (Optional but Powerful)
+Show “Recent Products” at top
+Add “Favorites” category
+Haptic feedback on add-to-cart
+Offline mode indicator
+🔥 Core Philosophy
+
+This screen is not for beauty—it’s for speed and survival.
+Every extra tap is lost money. Every delay is frustration.

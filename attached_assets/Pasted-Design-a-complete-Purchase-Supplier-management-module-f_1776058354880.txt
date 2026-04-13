@@ -1,0 +1,140 @@
+Design a complete Purchase & Supplier management module for a POS mobile app.
+
+This module should allow users to:
+
+Manage suppliers (add, edit, delete, select)
+Create purchase orders
+Refill stock for existing products
+Track purchase history
+
+The experience should feel fast, structured, and business-focused, not form-heavy.
+
+🏢 1. Supplier Management Screen
+🧱 Layout
+Header:
+Title: Suppliers
+Add button (+)
+📋 Supplier List
+
+Each row:
+
+[Avatar/Icon]  Supplier Name
+               Phone / Email
+
+               Total Orders
+               Last Purchase Date
+💡 Features
+Actions:
+Tap → Select supplier (for purchase)
+Swipe left → Edit / Delete
+Long press → Multi-select (optional)
+➕ Add / Edit Supplier Screen
+Fields:
+Supplier Name (required)
+Phone Number
+Email
+Address
+Notes (optional)
+Actions:
+Save (primary)
+Delete (if editing)
+
+💡 UX:
+
+Keep it minimal, fast to fill
+Validate phone/email lightly
+🛒 2. Purchase Screen (Stock Refill Core)
+
+This is your inventory inflow engine
+
+🧱 Layout Structure
+Top: Supplier selector
+Middle: Product selection list
+Bottom: Purchase summary + Confirm
+🔝 Section 1: Supplier Selector
+Supplier: [ Select Supplier ▼ ]
+Opens supplier list modal
+Option: “+ Add New Supplier”
+🛍️ Section 2: Add Products to Purchase
+Search bar:
+“Search product to add”
+Product List (Selectable)
+
+Each item:
+
+Product Name        ₹ Cost Price
+Stock: 12 pcs
+
+[ - ]  Qty  [ + ]
+💡 Behavior:
+Tap product → adds to purchase list
+Quantity editable
+Show current stock
+📦 Section 3: Purchase Cart (Like POS, but for buying)
+Must include:
+Product list:
+Name
+Purchase price
+Quantity
+Remove button
+💰 Section 4: Summary
+Subtotal        ₹XXXX
+Tax (optional)  ₹XXX
+Total           ₹XXXX
+✅ Section 5: Confirm Purchase
+Primary button: “Confirm Purchase”
+On tap:
+Stock gets updated
+Purchase record created
+🔄 3. Stock Update Logic (Critical)
+
+When purchase is confirmed:
+
+Existing Stock + Purchased Quantity = New Stock
+💡 UX Feedback:
+Show success message:
+👉 “Stock updated successfully”
+Option:
+View product
+New purchase
+📜 4. Purchase History Screen (Optional but Strong)
+
+Each entry:
+
+Supplier Name
+Date
+
+Items: 5
+Total: ₹4500
+
+Tap → View details
+
+🎨 Design Guidelines
+Clean, structured cards
+Use green for “stock added”
+Use icons:
+Supplier → person/building
+Purchase → box/cart
+⚡ UX Rules (Important)
+Add product to purchase in 1 tap
+Change quantity instantly
+Supplier selection must be fast (no deep navigation)
+Confirmation must feel immediate
+🧠 Real-World Flow
+Open Purchase
+Select Supplier
+Add Products
+Set Quantity
+Confirm
+
+→ Stock updated
+
+No friction. No confusion.
+
+🔥 Core Philosophy
+
+POS = money going out
+Purchase = money going in
+
+If POS is speed,
+Purchase is control.

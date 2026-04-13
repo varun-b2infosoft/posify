@@ -1,0 +1,181 @@
+Design a multi-shop management system inside a POS mobile app that allows:
+
+Managing multiple shops
+Assigning staff (salesman, manager, admin)
+Setting role-based permissions
+Transferring stock between shops
+Tracking stock transfer status visually
+Switching shop context globally (dashboard filter)
+
+The UI should feel structured, powerful, but not overwhelming.
+
+🏪 1. Shop Management Screen
+🧱 Layout
+Header:
+Title: Shops
+Add Shop (+)
+📋 Shop List
+
+Each card:
+
+Shop Name
+Location
+
+Stock Value: ₹50,000
+Today Sales: ₹8,500
+
+Staff: 5 members →
+💡 Actions:
+Tap → Open shop details
+Swipe → Edit / Delete
+➕ Add / Edit Shop
+
+Fields:
+
+Shop Name
+Address
+Contact Number
+Manager (optional)
+👥 2. Staff Management (Under Each Shop)
+
+Inside Shop Detail:
+
+📋 Staff List
+[Avatar]  Rahul Sharma
+Role: Salesman
+
+Permissions: POS, View Products
+➕ Add Staff
+
+Fields:
+
+Name
+Phone / Email
+Role:
+Admin
+Manager
+Salesman
+🔐 3. Permissions System (CRITICAL)
+🎯 Role-Based Permissions
+
+Instead of messy toggles—make it clean:
+
+Predefined Roles:
+👑 Admin
+Full access
+🧑‍💼 Manager
+POS
+Products
+Purchases
+Stock transfer
+Reports
+🧑‍🔧 Salesman
+POS only
+Limited product view
+⚙️ Custom Permissions (Optional Advanced)
+
+Toggle list:
+
+Access POS
+View Products
+Edit Products
+Manage Stock
+Transfer Stock
+View Reports
+🔄 4. Stock Transfer System (Core Feature)
+
+This is where most apps fail. Don’t mess this up.
+
+🧱 Transfer Screen
+Top:
+From Shop: [Shop A ▼]
+To Shop:   [Shop B ▼]
+📦 Product Selection
+Search + list
+Add items with quantity
+📋 Transfer Summary
+Product A   Qty: 10
+Product B   Qty: 5
+🚚 Transfer Status Flow
+States:
+🟡 Initiated
+🚚 In Transit
+✅ Completed
+❌ Cancelled
+🎨 Visual Timeline (IMPORTANT)
+[Initiated] → [🚚 On the way] → [Arrived]
+💡 UX:
+Show moving truck animation/icon
+Color-coded status:
+Yellow → pending
+Blue → transit
+Green → completed
+Red → cancelled
+📜 Transfer History
+
+Each item:
+
+Shop A → Shop B
+Items: 5
+Status: 🚚 In Transit
+Date
+
+Tap → full details
+
+📊 5. Dashboard Shop Selector (GLOBAL FILTER)
+
+This is VERY important.
+
+🔽 Add Dropdown in Dashboard Header:
+[ All Shops ▼ ]
+
+Options:
+
+All Shops
+Shop A
+Shop B
+💡 Behavior:
+
+When shop selected:
+
+Show:
+Sales
+Stock
+Staff
+Reports
+
+👉 Everything becomes shop-specific
+
+🧠 Smart UX Additions
+Remember last selected shop
+Show shop badge everywhere (context awareness)
+Restrict data based on user role
+⚡ Flow Example (Real Usage)
+Admin creates Shop A & B
+Adds staff to each shop
+Assigns roles
+Transfers stock from A → B
+Manager tracks transfer
+Salesman only sees POS
+🎨 Design Principles
+Use cards + sections
+Avoid clutter (this is complex already)
+Use icons:
+Shop 🏪
+Staff 👤
+Transfer 🚚
+🔥 Core Philosophy
+
+You’re not building screens anymore.
+
+You’re building:
+
+Control over multiple physical locations
+
+If user can’t answer:
+
+“Which shop?”
+“Who did it?”
+“Where is stock?”
+
+→ your system failed.

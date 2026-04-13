@@ -1,0 +1,120 @@
+Design a modern, user-friendly mobile dashboard screen for a Point of Sale (POS) application. The design should feel clean, data-driven, and fast to scan—think speed over decoration. Prioritize clarity, hierarchy, and real-time business insights.
+
+🧱 Layout Structure
+Use a vertical scroll layout
+Sticky top header
+Content divided into modular cards/sections
+Bottom navigation or sidebar trigger included
+🔝 Header Section
+App name or logo (left)
+Shop selector dropdown (if multiple shops)
+Notification bell (right)
+Profile avatar (rightmost)
+Optional: quick date range selector (Today / Week / Month)
+📊 Section 1: Key Statistics (Top Cards)
+
+Display 4 compact cards in a grid (2x2):
+
+Each card should include:
+
+Title (e.g., "Today Sales")
+Value (₹ amount)
+Small trend indicator (↑↓ with %)
+Subtext (e.g., "vs yesterday")
+
+Cards:
+
+Today Sales
+Weekly Sales
+Monthly Sales
+Total Sales
+
+💡 Design:
+
+Rounded cards
+Soft shadow
+Subtle color coding (green = growth, red = drop)
+Icons for quick recognition
+💰 Section 2: Revenue Overview
+Large card with:
+Total Revenue (big bold number)
+Total Orders (secondary stat)
+Include a mini line chart or bar graph
+Toggle: Day / Week / Month
+Highlight peak time visually
+
+💡 Design:
+
+Dominant visual element (this is the “hero” section)
+Smooth gradients or glassmorphism optional (don’t overdo it)
+📦 Section 3: Sales by Category
+Horizontal scrollable cards OR pie chart
+Each category shows:
+Name
+% contribution
+Revenue value
+
+💡 Design:
+
+Use distinct colors per category
+Clean legend
+Avoid clutter
+🏆 Section 4: Top Selling Products
+Vertical list (max 5 items)
+Each item includes:
+Product image (small thumbnail)
+Name
+Units sold
+Revenue generated
+
+💡 Design:
+
+Compact rows
+Subtle divider lines
+Highlight #1 item visually
+📉 Section 5: Least Selling Products
+Same layout as top selling
+Add visual cue (e.g., warning icon or faded tone)
+⚠️ Section 6: Low Stock Alerts
+High-priority section
+List of products with:
+Name
+Remaining quantity
+Alert indicator (red badge or icon)
+
+💡 Design:
+
+Use red/orange tones
+Make it noticeable but not aggressive
+🧭 Navigation
+Bottom navigation bar OR hamburger sidebar
+Items:
+Dashboard (active)
+Products
+POS (Sell Screen)
+Purchases
+Profile
+
+💡 Active tab should be clearly highlighted
+
+🎨 Design Style Guidelines
+Style: Modern, minimal, slightly premium
+Color palette:
+Primary: Deep blue / purple
+Accent: Green (profit), Red (loss)
+Background: Light grey or soft white
+Typography:
+Bold for key numbers
+Clean sans-serif (e.g., Inter, SF Pro)
+Spacing:
+Generous padding
+Clear separation between sections
+⚡ UX Principles**
+Everything should be readable in <3 seconds
+No clutter—each section has a purpose
+Touch targets must be large (mobile-friendly)
+Data hierarchy is critical (big → small → subtle)
+🧠 Extra Touch (Optional but Powerful)
+Add “Quick Actions” (e.g., + New Sale, + Add Product)
+Show “Today’s Summary” at top in 1 line
+Use micro-animations (hover, tap feedback)
