@@ -11,6 +11,7 @@ import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
+import { useLayout } from "@/hooks/useLayout";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { StatCard } from "@/components/StatCard";
 import { RevenueChart } from "@/components/RevenueChart";
@@ -53,8 +54,9 @@ const QUICK_ACTIONS = [
 ];
 
 export default function DashboardScreen() {
-  const colors = useColors();
-  const insets = useSafeAreaInsets();
+  const colors  = useColors();
+  const layout  = useLayout();
+  const insets  = useSafeAreaInsets();
   const [range, setRange] = useState<DateRange>("Today");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
@@ -112,7 +114,11 @@ export default function DashboardScreen() {
       />
 
       <ScrollView
-        contentContainerStyle={[styles.content, { paddingBottom: bottomPad + 100 }]}
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: bottomPad + 100 },
+          layout.isWide && { maxWidth: layout.maxContentWidth, alignSelf: "center", width: "100%" },
+        ]}
         showsVerticalScrollIndicator={false}
       >
         <TouchableOpacity
@@ -150,7 +156,7 @@ export default function DashboardScreen() {
           ))}
         </View>
 
-        <View style={styles.statsGrid}>
+        <View style={[styles.statsGrid, layout.isWide && { flexWrap: "nowrap" }]}>
           <StatCard
             title="Today Sales"
             value={stats.today.val}
@@ -158,6 +164,7 @@ export default function DashboardScreen() {
             subtext={stats.today.sub}
             icon="dollar-sign"
             accentColor="#4F46E5"
+            style={layout.isWide ? { flex: 1, minWidth: 0 } : undefined}
           />
           <StatCard
             title="Weekly Sales"
@@ -166,6 +173,7 @@ export default function DashboardScreen() {
             subtext={stats.weekly.sub}
             icon="bar-chart-2"
             accentColor="#06B6D4"
+            style={layout.isWide ? { flex: 1, minWidth: 0 } : undefined}
           />
           <StatCard
             title="Monthly Sales"
@@ -174,6 +182,7 @@ export default function DashboardScreen() {
             subtext={stats.monthly.sub}
             icon="trending-up"
             accentColor="#8B5CF6"
+            style={layout.isWide ? { flex: 1, minWidth: 0 } : undefined}
           />
           <StatCard
             title="Total Sales"
@@ -182,6 +191,7 @@ export default function DashboardScreen() {
             subtext={stats.total.sub}
             icon="layers"
             accentColor="#10B981"
+            style={layout.isWide ? { flex: 1, minWidth: 0 } : undefined}
           />
         </View>
 
