@@ -13,6 +13,7 @@ import { router, useFocusEffect } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
+import { useLayout } from "@/hooks/useLayout";
 import {
   CATEGORIES,
   CATEGORY_COLORS,
@@ -80,9 +81,10 @@ function ProductRow({ item, onPress, onLongPress }: { item: Product; onPress: ()
 
 export default function ProductsScreen() {
   const colors    = useColors();
+  const layout    = useLayout();
   const insets    = useSafeAreaInsets();
   const topPad    = Platform.OS === "web" ? 67 : insets.top;
-  const TAB_BAR_H = Platform.OS === "web" ? 84 : 49;
+  const TAB_BAR_H = Platform.OS === "web" ? (layout.isWide ? 0 : 84) : 49;
   const bottomPad = TAB_BAR_H + (Platform.OS === "web" ? 0 : insets.bottom);
 
   const [products,      setProducts]      = useState(() => getProducts());
@@ -240,7 +242,11 @@ export default function ProductsScreen() {
       <ScrollView
         style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={[styles.list, { paddingBottom: bottomPad + 80 }]}
+        contentContainerStyle={[
+          styles.list,
+          { paddingBottom: bottomPad + 80 },
+          layout.isWide && { maxWidth: layout.maxContentWidth, alignSelf: "center", width: "100%" },
+        ]}
       >
         {/* Summary bar */}
         <View style={[styles.summaryBar, { backgroundColor: colors.card, borderColor: colors.border }]}>
