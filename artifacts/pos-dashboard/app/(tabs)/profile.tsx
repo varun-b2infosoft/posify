@@ -282,7 +282,7 @@ export default function ProfileScreen() {
         </TouchableOpacity>
 
         <Text style={[styles.version, { color: colors.mutedForeground, fontFamily: "Inter_400Regular" }]}>
-          POSify v1.0.0
+          IPOS v1.0.0
         </Text>
       </ScrollView>
     </View>
