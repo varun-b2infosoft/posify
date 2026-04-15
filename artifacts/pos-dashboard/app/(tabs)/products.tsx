@@ -12,6 +12,7 @@ import {
 import { router, useFocusEffect } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Image } from "expo-image";
 import { useColors } from "@/hooks/useColors";
 import { useLayout } from "@/hooks/useLayout";
 import {
@@ -46,9 +47,13 @@ function ProductRow({ item, onPress, onLongPress }: { item: Product; onPress: ()
       onLongPress={onLongPress}
       activeOpacity={0.78}
     >
-      {/* Category icon */}
-      <View style={[styles.iconBox, { backgroundColor: catColor + "18" }]}>
-        <Feather name={catIcon as any} size={22} color={catColor} />
+      {/* Thumbnail: product image or category icon fallback */}
+      <View style={[styles.iconBox, { backgroundColor: catColor + "14", overflow: "hidden" }]}>
+        {item.image ? (
+          <Image source={{ uri: item.image }} style={{ width: "100%", height: "100%" }} contentFit="cover" transition={150} />
+        ) : (
+          <Feather name={catIcon as any} size={22} color={catColor} />
+        )}
       </View>
 
       {/* Info */}
