@@ -17,14 +17,15 @@ import { useColors } from "@/hooks/useColors";
 const SIDEBAR_WIDTH = Dimensions.get("window").width * 0.78;
 
 const MENU = [
-  { icon: "bar-chart-2", label: "Dashboard", screen: "index" },
-  { icon: "shopping-cart", label: "POS — Sell Items", screen: "pos", highlight: true },
-  { icon: "box", label: "Products", screen: "products" },
-  { icon: "truck", label: "Purchases", screen: "purchases" },
-  { icon: "repeat", label: "Stock Transfer", screen: "purchases" },
-  { icon: "file-text", label: "Invoices", screen: "purchases" },
-  { icon: "home", label: "Shops Management", screen: "profile" },
-  { icon: "user", label: "Profile / Settings", screen: "profile" },
+  { icon: "bar-chart-2",   label: "Dashboard",          screen: "index"    },
+  { icon: "shopping-cart", label: "POS — Sell Items",   screen: "pos",      highlight: true },
+  { icon: "box",           label: "Products",            screen: "products" },
+  { icon: "truck",         label: "Purchases",           screen: "purchases"},
+  { icon: "map-pin",       label: "Delivery Orders",     screen: "delivery" },
+  { icon: "repeat",        label: "Stock Transfer",      screen: "purchases"},
+  { icon: "file-text",     label: "Invoices",            screen: "purchases"},
+  { icon: "home",          label: "Shops Management",    screen: "profile"  },
+  { icon: "user",          label: "Profile / Settings",  screen: "profile"  },
 ];
 
 interface SidebarProps {
