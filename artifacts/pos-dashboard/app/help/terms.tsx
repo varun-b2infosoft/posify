@@ -21,12 +21,12 @@ const SECTIONS: Section[] = [
   {
     title: "1. Acceptance of Terms",
     body:
-      "By downloading, installing, or using the POSify application (\"App\"), you agree to be bound by these Terms of Service (\"Terms\"). If you do not agree to these Terms, do not use the App.\n\nThese Terms constitute a legally binding agreement between you (\"User\") and POSify Technologies Pvt. Ltd. (\"Company\", \"we\", \"us\", or \"our\"), a company incorporated under the laws of India.",
+      "By downloading, installing, or using the IPOS application (\"App\"), you agree to be bound by these Terms of Service (\"Terms\"). If you do not agree to these Terms, do not use the App.\n\nThese Terms constitute a legally binding agreement between you (\"User\") and IPOS Technologies Pvt. Ltd. (\"Company\", \"we\", \"us\", or \"our\"), a company incorporated under the laws of India.",
   },
   {
     title: "2. Description of Service",
     body:
-      "POSify is a point-of-sale management platform that enables merchants to manage inventory, process sales transactions, generate invoices, track expenses, manage customer credit (Udhaar), and analyse business performance.\n\nThe App is intended for use by registered business owners, shopkeepers, and their authorised staff members. Personal use unrelated to commerce is not the intended purpose of the App.",
+      "IPOS is a point-of-sale management platform that enables merchants to manage inventory, process sales transactions, generate invoices, track expenses, manage customer credit (Udhaar), and analyse business performance.\n\nThe App is intended for use by registered business owners, shopkeepers, and their authorised staff members. Personal use unrelated to commerce is not the intended purpose of the App.",
   },
   {
     title: "3. Account Registration",
@@ -36,12 +36,12 @@ const SECTIONS: Section[] = [
   {
     title: "4. Subscription & Billing",
     body:
-      "POSify offers free and paid subscription tiers. Paid plans are billed monthly or annually as selected at the time of purchase. All prices are in Indian Rupees (₹) and inclusive of applicable GST.\n\nSubscriptions auto-renew unless cancelled at least 24 hours before the renewal date. No refunds are provided for partial subscription periods except where required by applicable law.\n\nWe reserve the right to modify pricing with 30 days' advance notice to registered users.",
+      "IPOS offers free and paid subscription tiers. Paid plans are billed monthly or annually as selected at the time of purchase. All prices are in Indian Rupees (₹) and inclusive of applicable GST.\n\nSubscriptions auto-renew unless cancelled at least 24 hours before the renewal date. No refunds are provided for partial subscription periods except where required by applicable law.\n\nWe reserve the right to modify pricing with 30 days' advance notice to registered users.",
   },
   {
     title: "5. Data & Backups",
     body:
-      "You own all business data you input into POSify including product catalogues, customer records, invoices, and transaction history. We do not claim any ownership over your data.\n\nWhile we provide automatic cloud backup features, it is ultimately your responsibility to maintain adequate backups of your critical business data. We are not liable for data loss arising from device failure, user error, or service interruption.\n\nData is stored on servers located in India in compliance with the Information Technology Act, 2000 and applicable data localisation requirements.",
+      "You own all business data you input into IPOS including product catalogues, customer records, invoices, and transaction history. We do not claim any ownership over your data.\n\nWhile we provide automatic cloud backup features, it is ultimately your responsibility to maintain adequate backups of your critical business data. We are not liable for data loss arising from device failure, user error, or service interruption.\n\nData is stored on servers located in India in compliance with the Information Technology Act, 2000 and applicable data localisation requirements.",
   },
   {
     title: "6. Acceptable Use",
@@ -51,7 +51,7 @@ const SECTIONS: Section[] = [
   {
     title: "7. Intellectual Property",
     body:
-      "The App, its design, features, software, logos, and all associated intellectual property are owned by POSify Technologies Pvt. Ltd. and are protected by applicable intellectual property laws.\n\nYou are granted a limited, non-exclusive, non-transferable licence to use the App solely for your internal business purposes. This licence does not include the right to sublicence, modify, or create derivative works based on the App.",
+      "The App, its design, features, software, logos, and all associated intellectual property are owned by IPOS Technologies Pvt. Ltd. and are protected by applicable intellectual property laws.\n\nYou are granted a limited, non-exclusive, non-transferable licence to use the App solely for your internal business purposes. This licence does not include the right to sublicence, modify, or create derivative works based on the App.",
   },
   {
     title: "8. Third-Party Services",
@@ -61,12 +61,12 @@ const SECTIONS: Section[] = [
   {
     title: "9. Limitation of Liability",
     body:
-      'To the fullest extent permitted by applicable law, POSify Technologies Pvt. Ltd. shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to loss of profits, loss of data, business interruption, or any other commercial damages or losses.\n\nOur total liability to you for any claims arising under these Terms shall not exceed the amount you paid to us in the 12 months preceding the claim. This limitation applies even if we have been advised of the possibility of such damages.',
+      'To the fullest extent permitted by applicable law, IPOS Technologies Pvt. Ltd. shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to loss of profits, loss of data, business interruption, or any other commercial damages or losses.\n\nOur total liability to you for any claims arising under these Terms shall not exceed the amount you paid to us in the 12 months preceding the claim. This limitation applies even if we have been advised of the possibility of such damages.',
   },
   {
     title: "10. Indemnification",
     body:
-      "You agree to indemnify, defend, and hold harmless POSify Technologies Pvt. Ltd. and its officers, directors, employees, and agents from and against any claims, liabilities, damages, losses, and expenses (including legal fees) arising out of or in any way connected with your access to or use of the App, your violation of these Terms, or your violation of any rights of a third party.",
+      "You agree to indemnify, defend, and hold harmless IPOS Technologies Pvt. Ltd. and its officers, directors, employees, and agents from and against any claims, liabilities, damages, losses, and expenses (including legal fees) arising out of or in any way connected with your access to or use of the App, your violation of these Terms, or your violation of any rights of a third party.",
   },
   {
     title: "11. Termination",
@@ -86,7 +86,7 @@ const SECTIONS: Section[] = [
   {
     title: "14. Contact Us",
     body:
-      "If you have questions about these Terms, please contact us:\n\nPOSify Technologies Pvt. Ltd.\nEmail: legal@posify.in\nPhone: +91 98765 00000\nAddress: 4th Floor, Tech Park, MG Road, Bengaluru – 560001, Karnataka, India",
+      "If you have questions about these Terms, please contact us:\n\nIPOS Technologies Pvt. Ltd.\nEmail: legal@posify.in\nPhone: +91 98765 00000\nAddress: 4th Floor, Tech Park, MG Road, Bengaluru – 560001, Karnataka, India",
   },
 ];
 
