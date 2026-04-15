@@ -14,7 +14,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
 import { Invoice, getInvoice, markReturned, subscribeInvoices } from "@/store/invoices";
 
-const SHOP_NAME = "POSify Main Store";
+const SHOP_NAME = "IPOS Main Store";
 const SHOP_ADDR = "12, MG Road, Bengaluru";
 const GST_NO    = "29AABCP1234Q1Z5";
 
