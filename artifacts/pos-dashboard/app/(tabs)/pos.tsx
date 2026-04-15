@@ -20,6 +20,8 @@ import { useColors } from "@/hooks/useColors";
 import { useLayout } from "@/hooks/useLayout";
 import { Sidebar } from "@/components/Sidebar";
 import { PaymentModal, PaymentMethod, PaymentResult } from "@/components/PaymentModal";
+import { HoldOrderModal } from "@/components/HoldOrderModal";
+import { HeldOrdersPanel } from "@/components/HeldOrdersPanel";
 import {
   getProducts, subscribeProducts,
   isWeightBased, formatQty, weightPresets, weightStep,
@@ -27,6 +29,13 @@ import {
 } from "@/store/products";
 import { addInvoice } from "@/store/invoices";
 import { addCreditTransaction } from "@/store/customers";
+import {
+  HeldOrder,
+  saveHoldOrder,
+  getNextOrderName,
+  heldOrderCount,
+  subscribeHeldOrders,
+} from "@/store/holdOrders";
 
 interface StoreProduct {
   id: string;
@@ -325,10 +334,16 @@ export default function POSScreen() {
   const [lastResult,     setLastResult]     = useState<PaymentResult | null>(null);
   const [sidebarOpen,    setSidebarOpen]    = useState(false);
   const [weightModal,    setWeightModal]    = useState<StoreProduct | null>(null);
+  const [holdModalVisible,  setHoldModalVisible]  = useState(false);
+  const [heldPanelVisible,  setHeldPanelVisible]  = useState(false);
+  const [heldCount,         setHeldCount]         = useState(() => heldOrderCount());
 
   useFocusEffect(useCallback(() => {
     setAllProducts(getProducts());
-    return subscribeProducts(() => setAllProducts(getProducts()));
+    setHeldCount(heldOrderCount());
+    const unsubP = subscribeProducts(() => setAllProducts(getProducts()));
+    const unsubH = subscribeHeldOrders(() => setHeldCount(heldOrderCount()));
+    return () => { unsubP(); unsubH(); };
   }, []));
 
   const panelH     = useRef(new Animated.Value(0)).current;
@@ -415,6 +430,19 @@ export default function POSScreen() {
   const tax       = Math.round(subtotal * 0.18);
   const total     = subtotal + tax;
   const itemCount = cart.reduce((s, c) => s + (c.weightBased ? 1 : c.qty), 0);
+
+  const handleHoldConfirm = (orderName: string, customerName: string, customerPhone: string) => {
+    if (cart.length === 0) return;
+    saveHoldOrder(cart, subtotal, total, orderName, customerName, customerPhone);
+    setCart([]);
+    setCartExpanded(false);
+    setHoldModalVisible(false);
+  };
+
+  const handleResume = (order: HeldOrder) => {
+    setCart(order.items as any);
+    setHeldPanelVisible(false);
+  };
 
   const handlePaySuccess = (result: PaymentResult) => {
     setLastMethod(result.method);
@@ -531,6 +559,22 @@ export default function POSScreen() {
         onConfirm={handleWeightConfirm}
       />
 
+      <HoldOrderModal
+        visible={holdModalVisible}
+        items={cart}
+        total={total}
+        defaultOrderName={getNextOrderName()}
+        onConfirm={handleHoldConfirm}
+        onCancel={() => setHoldModalVisible(false)}
+      />
+
+      <HeldOrdersPanel
+        visible={heldPanelVisible}
+        hasActiveCart={cart.length > 0}
+        onResume={handleResume}
+        onClose={() => setHeldPanelVisible(false)}
+      />
+
       {/* Header */}
       <View style={[styles.header, { paddingTop: topPad + 8, backgroundColor: colors.primary }]}>
         {!layout.isWide && (
@@ -539,8 +583,23 @@ export default function POSScreen() {
           </TouchableOpacity>
         )}
         <Text style={[styles.headerTitle, { fontFamily: "Inter_700Bold" }]}>POS</Text>
-        <TouchableOpacity onPress={() => router.push("/(tabs)/" as any)}>
-          <Feather name="home" size={20} color="rgba(255,255,255,0.8)" />
+        <TouchableOpacity
+          onPress={() => setHeldPanelVisible(true)}
+          style={[
+            styles.heldBtn,
+            { backgroundColor: heldCount > 0 ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.1)" },
+          ]}
+        >
+          <Feather name="pause-circle" size={15} color={heldCount > 0 ? "#fff" : "rgba(255,255,255,0.65)"} />
+          <Text style={[
+            styles.heldBtnText,
+            { fontFamily: "Inter_600SemiBold", color: heldCount > 0 ? "#fff" : "rgba(255,255,255,0.65)" },
+          ]}>
+            {heldCount > 0 ? `Held (${heldCount})` : "Held"}
+          </Text>
+          {heldCount > 0 && (
+            <View style={styles.heldDot} />
+          )}
         </TouchableOpacity>
       </View>
 
@@ -769,6 +828,17 @@ export default function POSScreen() {
             </View>
 
             <TouchableOpacity
+              style={[styles.holdOrderBtn, { borderColor: "#F59E0B50", backgroundColor: "#F59E0B0C" }]}
+              onPress={() => setHoldModalVisible(true)}
+              activeOpacity={0.75}
+            >
+              <Feather name="pause-circle" size={15} color="#D97706" />
+              <Text style={[styles.holdOrderText, { color: "#D97706", fontFamily: "Inter_600SemiBold" }]}>
+                Hold Order
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
               style={[styles.proceedBtn, { backgroundColor: colors.success }]}
               onPress={() => setPayVisible(true)}
               activeOpacity={0.85}
@@ -920,6 +990,23 @@ const styles = StyleSheet.create({
   totalLine:    { borderTopWidth: 1, paddingTop: 6, marginTop: 2 },
   totalLabel:   { fontSize: 15 },
   totalValue:   { fontSize: 15 },
+
+  heldBtn: {
+    flexDirection: "row", alignItems: "center", gap: 5,
+    paddingHorizontal: 11, paddingVertical: 6, borderRadius: 12,
+  },
+  heldBtnText: { fontSize: 13 },
+  heldDot: {
+    width: 7, height: 7, borderRadius: 4,
+    backgroundColor: "#F59E0B", marginLeft: 1,
+  },
+
+  holdOrderBtn: {
+    flexDirection: "row", alignItems: "center", justifyContent: "center",
+    gap: 7, marginHorizontal: 10, marginBottom: 6, borderRadius: 11,
+    paddingVertical: 10, borderWidth: 1,
+  },
+  holdOrderText: { fontSize: 14 },
 
   proceedBtn: {
     flexDirection: "row", alignItems: "center", justifyContent: "center",
