@@ -136,6 +136,35 @@ export default function InvoiceDetailScreen() {
             <Text style={[styles.grandLabel, { color: colors.foreground, fontFamily: "Inter_700Bold" }]}>TOTAL</Text>
             <Text style={[styles.grandVal,   { color: "#4F46E5",         fontFamily: "Inter_700Bold" }]}>₹{invoice.total.toLocaleString()}</Text>
           </View>
+
+          {(invoice.amountPaid !== undefined || invoice.dueAmount || invoice.walletAdded || invoice.walletUsed) && (
+            <View style={{ gap: 6, paddingTop: 8, borderTopWidth: 1, borderTopColor: colors.border + "60", marginTop: 4 }}>
+              {invoice.walletUsed !== undefined && invoice.walletUsed > 0 && (
+                <View style={styles.totalRow}>
+                  <Text style={[styles.totalLabel, { color: "#10B981", fontFamily: "Inter_500Medium" }]}>Wallet Applied</Text>
+                  <Text style={[styles.totalVal,   { color: "#10B981", fontFamily: "Inter_600SemiBold" }]}>−₹{invoice.walletUsed.toLocaleString()}</Text>
+                </View>
+              )}
+              {invoice.amountPaid !== undefined && (
+                <View style={styles.totalRow}>
+                  <Text style={[styles.totalLabel, { color: colors.mutedForeground, fontFamily: "Inter_400Regular" }]}>Amount Paid</Text>
+                  <Text style={[styles.totalVal,   { color: "#10B981", fontFamily: "Inter_600SemiBold" }]}>₹{invoice.amountPaid.toLocaleString()}</Text>
+                </View>
+              )}
+              {invoice.dueAmount !== undefined && invoice.dueAmount > 0 && (
+                <View style={[styles.totalRow, { backgroundColor: "#FEF2F2", borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 }]}>
+                  <Text style={[styles.totalLabel, { color: "#EF4444", fontFamily: "Inter_600SemiBold" }]}>Due (Udhaar)</Text>
+                  <Text style={[styles.totalVal,   { color: "#EF4444", fontFamily: "Inter_700Bold"    }]}>₹{invoice.dueAmount.toLocaleString()}</Text>
+                </View>
+              )}
+              {invoice.walletAdded !== undefined && invoice.walletAdded > 0 && (
+                <View style={[styles.totalRow, { backgroundColor: "#F0FDF4", borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 }]}>
+                  <Text style={[styles.totalLabel, { color: "#10B981", fontFamily: "Inter_600SemiBold" }]}>Added to Wallet</Text>
+                  <Text style={[styles.totalVal,   { color: "#10B981", fontFamily: "Inter_700Bold"    }]}>+₹{invoice.walletAdded.toLocaleString()}</Text>
+                </View>
+              )}
+            </View>
+          )}
         </View>
 
         <View style={{ flexDirection: "row", gap: 10 }}>
