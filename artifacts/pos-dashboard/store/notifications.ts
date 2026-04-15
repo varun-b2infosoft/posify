@@ -19,7 +19,7 @@ const INITIAL_NOTIFS: Notification[] = [
   { id: "N5",  type: "low_stock",     title: "Low Stock Alert",          body: "Herbal Face Cream (Rose Water) — only 150 ml remaining.",    date: "2026-04-12T11:00:00", read: true,  icon: "alert-triangle", color: "#F59E0B" },
   { id: "N6",  type: "payment",       title: "Credit Due Reminder",      body: "Kavitha Rao has ₹11,000 outstanding. Last txn 12 days ago.", date: "2026-04-11T09:00:00", read: true,  icon: "credit-card",    color: "#EF4444" },
   { id: "N7",  type: "transfer",      title: "Transfer Initiated",       body: "New transfer created: SH3 → SH1 (5 products).",             date: "2026-04-11T14:20:00", read: true,  icon: "package",        color: "#10B981" },
-  { id: "N8",  type: "return",        title: "Return Processed",         body: "Invoice POSify-0009 returned by Ramesh Gupta — ₹944.",      date: "2026-04-10T16:45:00", read: true,  icon: "rotate-ccw",     color: "#EF4444" },
+  { id: "N8",  type: "return",        title: "Return Processed",         body: "Invoice IPOS-0009 returned by Ramesh Gupta — ₹944.",      date: "2026-04-10T16:45:00", read: true,  icon: "rotate-ccw",     color: "#EF4444" },
   { id: "N9",  type: "daily_summary", title: "Daily Summary – Apr 10",   body: "Sales ₹41,200 · Orders 18 · Net Profit ₹14,500",           date: "2026-04-10T23:55:00", read: true,  icon: "bar-chart-2",    color: "#8B5CF6" },
   { id: "N10", type: "system",        title: "Backup Successful",        body: "Your data was backed up to cloud at 2:00 AM.",              date: "2026-04-10T02:00:00", read: true,  icon: "cloud",          color: "#06B6D4" },
 ];
