@@ -19,14 +19,14 @@ import { Image } from "expo-image";
 import { useColors } from "@/hooks/useColors";
 import { useLayout } from "@/hooks/useLayout";
 import { Sidebar } from "@/components/Sidebar";
-import { PaymentModal } from "@/components/PaymentModal";
+import { PaymentModal, PaymentMethod, PaymentResult } from "@/components/PaymentModal";
 import {
   getProducts, subscribeProducts,
   isWeightBased, formatQty, weightPresets, weightStep,
   CATEGORY_COLORS, CATEGORY_ICONS,
 } from "@/store/products";
-
-type PaymentMethod = "cash" | "upi" | "card";
+import { addInvoice } from "@/store/invoices";
+import { addCreditTransaction } from "@/store/customers";
 
 interface StoreProduct {
   id: string;
@@ -322,6 +322,7 @@ export default function POSScreen() {
   const [payVisible,     setPayVisible]     = useState(false);
   const [orderPlaced,    setOrderPlaced]    = useState(false);
   const [lastMethod,     setLastMethod]     = useState<PaymentMethod>("cash");
+  const [lastResult,     setLastResult]     = useState<PaymentResult | null>(null);
   const [sidebarOpen,    setSidebarOpen]    = useState(false);
   const [weightModal,    setWeightModal]    = useState<StoreProduct | null>(null);
 
@@ -415,14 +416,50 @@ export default function POSScreen() {
   const total     = subtotal + tax;
   const itemCount = cart.reduce((s, c) => s + (c.weightBased ? 1 : c.qty), 0);
 
-  const handlePaySuccess = (method: PaymentMethod) => {
-    setLastMethod(method);
+  const handlePaySuccess = (result: PaymentResult) => {
+    setLastMethod(result.method);
+    setLastResult(result);
     setPayVisible(false);
     setOrderPlaced(true);
     setCartExpanded(false);
     panelH.setValue(COLLAPSED_H);
     chevronRot.setValue(0);
-    setTimeout(() => { setOrderPlaced(false); setCart([]); }, 2600);
+
+    const today = new Date().toISOString().split("T")[0];
+    const modeMap = { cash: "Cash" as const, upi: "UPI" as const, card: "Card" as const };
+    addInvoice({
+      invoiceNo:    `POSify-${Date.now()}`,
+      customerId:   result.customerId   ?? "",
+      customerName: result.customerName ?? "Walk-in Customer",
+      date:  today,
+      items: cart.map(c => ({ name: c.name, qty: c.qty, unit: c.unit, price: c.price, total: c.price * c.qty })),
+      subtotal,
+      gst:      tax,
+      gstRate:  18,
+      total,
+      paid:        result.dueAmount === 0,
+      paymentMode: result.dueAmount > 0 ? "Credit" : modeMap[result.method],
+      shopId:   "SH1",
+      returned: false,
+      amountPaid:  result.totalReceived,
+      dueAmount:   result.dueAmount   > 0 ? result.dueAmount   : undefined,
+      walletAdded: result.walletAdded > 0 ? result.walletAdded : undefined,
+      walletUsed:  result.walletUsed  > 0 ? result.walletUsed  : undefined,
+    });
+
+    if (result.customerId) {
+      if (result.dueAmount > 0) {
+        addCreditTransaction({ customerId: result.customerId, type: "sale",       amount: result.dueAmount,   note: `Udhaar from sale ₹${total.toLocaleString()}`, date: today });
+      }
+      if (result.walletAdded > 0) {
+        addCreditTransaction({ customerId: result.customerId, type: "wallet_in",  amount: result.walletAdded, note: `Wallet top-up from sale ₹${total.toLocaleString()}`,   date: today });
+      }
+      if (result.walletUsed > 0) {
+        addCreditTransaction({ customerId: result.customerId, type: "wallet_out", amount: result.walletUsed,  note: `Wallet applied to sale ₹${total.toLocaleString()}`,    date: today });
+      }
+    }
+
+    setTimeout(() => { setOrderPlaced(false); setCart([]); }, 2800);
   };
 
   if (orderPlaced) {
@@ -443,8 +480,24 @@ export default function POSScreen() {
               {lastMethod === "cash" ? "Cash" : lastMethod === "upi" ? "UPI" : "Card"}
             </Text>
           </View>
+          {lastResult && lastResult.dueAmount > 0 && (
+            <View style={[styles.methodBadge, { backgroundColor: "#EF444415", marginTop: 4 }]}>
+              <Feather name="alert-circle" size={13} color="#EF4444" />
+              <Text style={[styles.methodText, { color: "#EF4444", fontFamily: "Inter_600SemiBold" }]}>
+                ₹{lastResult.dueAmount.toLocaleString()} due from {lastResult.customerName}
+              </Text>
+            </View>
+          )}
+          {lastResult && lastResult.walletAdded > 0 && (
+            <View style={[styles.methodBadge, { backgroundColor: "#10B98115", marginTop: 4 }]}>
+              <Feather name="pocket" size={13} color="#10B981" />
+              <Text style={[styles.methodText, { color: "#10B981", fontFamily: "Inter_600SemiBold" }]}>
+                ₹{lastResult.walletAdded.toLocaleString()} added to {lastResult.customerName}'s wallet
+              </Text>
+            </View>
+          )}
           <Text style={[styles.successSub, { color: colors.mutedForeground, fontFamily: "Inter_400Regular" }]}>
-            Receipt printed · Inventory updated
+            Invoice created · Inventory updated
           </Text>
           <TouchableOpacity style={[styles.newSaleBtn, { backgroundColor: colors.primary }]} onPress={() => setOrderPlaced(false)}>
             <Feather name="plus" size={18} color="#fff" />
