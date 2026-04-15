@@ -303,7 +303,7 @@ export default function SettingsScreen() {
         </View>
 
         <Text style={[{ color: colors.mutedForeground, fontSize: 11, textAlign: "center", fontFamily: "Inter_400Regular" }]}>
-          POSify v2.0.0 · Data stored securely
+          IPOS v2.0.0 · Data stored securely
         </Text>
       </ScrollView>
     </View>
