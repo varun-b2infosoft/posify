@@ -494,7 +494,7 @@ export default function POSScreen() {
     const today = new Date().toISOString().split("T")[0];
     const modeMap = { cash: "Cash" as const, upi: "UPI" as const, card: "Card" as const };
     addInvoice({
-      invoiceNo:    `POSify-${Date.now()}`,
+      invoiceNo:    `IPOS-${Date.now()}`,
       customerId:   result.customerId   ?? "",
       customerName: result.customerName ?? "Walk-in Customer",
       date:  today,
