@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { Feather } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFocusEffect } from "expo-router";
 import { useColors } from "@/hooks/useColors";
@@ -122,20 +123,33 @@ export default function ProductDetailScreen() {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.content, { paddingBottom: botPad + 80 }]}>
-        {/* Hero image / icon */}
-        <View style={[styles.heroCard, { backgroundColor: catColor + "14", borderColor: catColor + "30" }]}>
-          <View style={[styles.heroIcon, { backgroundColor: catColor + "25" }]}>
-            <Feather name={catIcon as any} size={56} color={catColor} />
-          </View>
-          <Text style={[styles.heroName, { color: colors.foreground, fontFamily: "Inter_700Bold" }]}>{product.name}</Text>
-          <Text style={[styles.heroPrice, { color: catColor, fontFamily: "Inter_700Bold" }]}>
-            ₹{product.price.toLocaleString()}
-          </Text>
-          <View style={[styles.stockBadge, { backgroundColor: stockStyle.bg }]}>
-            <View style={[styles.stockDot, { backgroundColor: stockStyle.text }]} />
-            <Text style={[styles.stockText, { color: stockStyle.text, fontFamily: "Inter_600SemiBold" }]}>
-              {stockStyle.label}
-            </Text>
+        {/* Hero — product image */}
+        <View style={[styles.heroCard, { backgroundColor: catColor + "12", borderColor: catColor + "28" }]}>
+          {product.image ? (
+            <Image
+              source={{ uri: product.image }}
+              style={styles.heroImage}
+              contentFit="cover"
+              transition={300}
+            />
+          ) : (
+            <View style={[styles.heroIconBox, { backgroundColor: catColor + "22" }]}>
+              <Feather name={catIcon as any} size={56} color={catColor} />
+            </View>
+          )}
+          <View style={styles.heroMeta}>
+            <Text style={[styles.heroName, { color: colors.foreground, fontFamily: "Inter_700Bold" }]}>{product.name}</Text>
+            <View style={styles.heroPriceRow}>
+              <Text style={[styles.heroPrice, { color: catColor, fontFamily: "Inter_700Bold" }]}>
+                ₹{product.price.toLocaleString()}
+              </Text>
+              <View style={[styles.stockBadge, { backgroundColor: stockStyle.bg }]}>
+                <View style={[styles.stockDot, { backgroundColor: stockStyle.text }]} />
+                <Text style={[styles.stockText, { color: stockStyle.text, fontFamily: "Inter_600SemiBold" }]}>
+                  {stockStyle.label}
+                </Text>
+              </View>
+            </View>
           </View>
         </View>
 
@@ -200,21 +214,30 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: 14, paddingTop: 16, gap: 12 },
 
   heroCard: {
-    borderRadius: 18, borderWidth: 1, padding: 24,
-    alignItems: "center", gap: 10,
+    borderRadius: 18, borderWidth: 1,
+    overflow: "hidden",
   },
-  heroIcon: {
-    width: 100, height: 100, borderRadius: 24,
+  heroImage: {
+    width: "100%", height: 240,
+  },
+  heroIconBox: {
+    width: "100%", height: 200,
     alignItems: "center", justifyContent: "center",
   },
-  heroName:   { fontSize: 20, textAlign: "center" },
-  heroPrice:  { fontSize: 26 },
+  heroMeta: {
+    padding: 16, gap: 6,
+  },
+  heroPriceRow: {
+    flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8,
+  },
+  heroName:   { fontSize: 20 },
+  heroPrice:  { fontSize: 24 },
   stockBadge: {
-    flexDirection: "row", alignItems: "center", gap: 6,
-    paddingHorizontal: 12, paddingVertical: 5, borderRadius: 20,
+    flexDirection: "row", alignItems: "center", gap: 5,
+    paddingHorizontal: 10, paddingVertical: 4, borderRadius: 16,
   },
   stockDot:  { width: 7, height: 7, borderRadius: 3.5 },
-  stockText: { fontSize: 13 },
+  stockText: { fontSize: 12 },
 
   sectionTitle: { fontSize: 15, marginTop: 4 },
 
