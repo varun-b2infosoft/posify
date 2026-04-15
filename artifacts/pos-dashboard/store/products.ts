@@ -10,28 +10,31 @@ export interface Product {
   totalSold: number;
   revenue: number;
   lastSold: string;
+  image?: string;
 }
 
+const U = (id: string) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=400&q=80`;
+
 const INITIAL: Product[] = [
-  { id: "1",  name: "Café Americano Blend",    sku: "FB-001", category: "Food & Bev",    price: 499,  stock: 2,    unit: "kg",     lowStockThreshold: 5,  totalSold: 142, revenue: 70858,  lastSold: "Today" },
-  { id: "2",  name: "iPhone Case Pro",          sku: "EL-021", category: "Electronics",   price: 899,  stock: 24,   unit: "pcs",    lowStockThreshold: 5,  totalSold: 89,  revenue: 80011,  lastSold: "Yesterday" },
-  { id: "3",  name: "Linen Kurta Set",          sku: "CL-045", category: "Clothing",      price: 1299, stock: 6,    unit: "pcs",    lowStockThreshold: 5,  totalSold: 54,  revenue: 70146,  lastSold: "2 days ago" },
-  { id: "4",  name: "Wooden Platter (L)",       sku: "HL-012", category: "Home & Living", price: 1150, stock: 3,    unit: "pcs",    lowStockThreshold: 5,  totalSold: 38,  revenue: 43700,  lastSold: "3 days ago" },
-  { id: "5",  name: "Python Handbook",          sku: "BK-007", category: "Books",         price: 799,  stock: 31,   unit: "pcs",    lowStockThreshold: 10, totalSold: 210, revenue: 167790, lastSold: "Today" },
-  { id: "6",  name: "Crystal Candle Set",       sku: "HL-034", category: "Home & Living", price: 650,  stock: 18,   unit: "pcs",    lowStockThreshold: 5,  totalSold: 73,  revenue: 47450,  lastSold: "Yesterday" },
-  { id: "7",  name: "Fitness Gloves",           sku: "SP-009", category: "Sports",        price: 549,  stock: 5,    unit: "pcs",    lowStockThreshold: 5,  totalSold: 91,  revenue: 49959,  lastSold: "Today" },
-  { id: "8",  name: "Herbal Face Cream",        sku: "BE-022", category: "Beauty",        price: 1199, stock: 500,  unit: "ml",     lowStockThreshold: 100, totalSold: 186, revenue: 92814, lastSold: "Yesterday" },
-  { id: "9",  name: "Travel Pillow",            sku: "AC-061", category: "Accessories",   price: 299,  stock: 22,   unit: "pcs",    lowStockThreshold: 5,  totalSold: 134, revenue: 40066,  lastSold: "Today" },
-  { id: "10", name: "Desk Calendar 2026",       sku: "ST-014", category: "Stationery",    price: 149,  stock: 9,    unit: "pcs",    lowStockThreshold: 5,  totalSold: 67,  revenue: 9983,   lastSold: "2 days ago" },
-  { id: "11", name: "Espresso Pods (10pk)",     sku: "FB-019", category: "Food & Bev",    price: 349,  stock: 38,   unit: "pcs",    lowStockThreshold: 10, totalSold: 298, revenue: 104002, lastSold: "Today" },
-  { id: "12", name: "USB-C Hub 7-in-1",         sku: "EL-067", category: "Electronics",   price: 2299, stock: 15,   unit: "pcs",    lowStockThreshold: 5,  totalSold: 44,  revenue: 101156, lastSold: "Yesterday" },
-  { id: "13", name: "Yoga Mat Pro",             sku: "SP-031", category: "Sports",        price: 1499, stock: 8,    unit: "pcs",    lowStockThreshold: 5,  totalSold: 62,  revenue: 92938,  lastSold: "3 days ago" },
-  { id: "14", name: "Moisturiser SPF",          sku: "BE-041", category: "Beauty",        price: 649,  stock: 19,   unit: "pcs",    lowStockThreshold: 10, totalSold: 155, revenue: 100595, lastSold: "Yesterday" },
-  { id: "15", name: "Travel Wallet",            sku: "AC-078", category: "Accessories",   price: 799,  stock: 11,   unit: "pcs",    lowStockThreshold: 5,  totalSold: 48,  revenue: 38352,  lastSold: "4 days ago" },
-  { id: "16", name: "Basmati Rice Premium",     sku: "FB-031", category: "Food & Bev",    price: 89,   stock: 50,   unit: "kg",     lowStockThreshold: 10, totalSold: 320, revenue: 28480,  lastSold: "Today" },
-  { id: "17", name: "Extra Virgin Olive Oil",   sku: "FB-042", category: "Food & Bev",    price: 450,  stock: 20,   unit: "litre",  lowStockThreshold: 5,  totalSold: 84,  revenue: 37800,  lastSold: "Yesterday" },
-  { id: "18", name: "Mixed Dry Fruits",         sku: "FB-056", category: "Food & Bev",    price: 12,   stock: 5000, unit: "g",      lowStockThreshold: 500, totalSold: 9200, revenue: 110400, lastSold: "Today" },
-  { id: "19", name: "Rose Water",               sku: "BE-055", category: "Beauty",        price: 2.5,  stock: 8000, unit: "ml",     lowStockThreshold: 500, totalSold: 45000, revenue: 112500, lastSold: "Today" },
+  { id: "1",  name: "Café Americano Blend",    sku: "FB-001", category: "Food & Bev",    price: 499,  stock: 2,    unit: "kg",     lowStockThreshold: 5,  totalSold: 142, revenue: 70858,  lastSold: "Today",       image: U("1447933601403-0c6688de566e") },
+  { id: "2",  name: "iPhone Case Pro",          sku: "EL-021", category: "Electronics",   price: 899,  stock: 24,   unit: "pcs",    lowStockThreshold: 5,  totalSold: 89,  revenue: 80011,  lastSold: "Yesterday",   image: U("1601784551446-20c9e07cdbdb") },
+  { id: "3",  name: "Linen Kurta Set",          sku: "CL-045", category: "Clothing",      price: 1299, stock: 6,    unit: "pcs",    lowStockThreshold: 5,  totalSold: 54,  revenue: 70146,  lastSold: "2 days ago",  image: U("1610030469983-98e550d6193c") },
+  { id: "4",  name: "Wooden Platter (L)",       sku: "HL-012", category: "Home & Living", price: 1150, stock: 3,    unit: "pcs",    lowStockThreshold: 5,  totalSold: 38,  revenue: 43700,  lastSold: "3 days ago",  image: U("1533652168878-60c53a8a5fca") },
+  { id: "5",  name: "Python Handbook",          sku: "BK-007", category: "Books",         price: 799,  stock: 31,   unit: "pcs",    lowStockThreshold: 10, totalSold: 210, revenue: 167790, lastSold: "Today",       image: U("1544716278-ca5e3f4abd8c") },
+  { id: "6",  name: "Crystal Candle Set",       sku: "HL-034", category: "Home & Living", price: 650,  stock: 18,   unit: "pcs",    lowStockThreshold: 5,  totalSold: 73,  revenue: 47450,  lastSold: "Yesterday",   image: U("1608181831718-2179825aba61") },
+  { id: "7",  name: "Fitness Gloves",           sku: "SP-009", category: "Sports",        price: 549,  stock: 5,    unit: "pcs",    lowStockThreshold: 5,  totalSold: 91,  revenue: 49959,  lastSold: "Today",       image: U("1517836357463-d25dfeac3438") },
+  { id: "8",  name: "Herbal Face Cream",        sku: "BE-022", category: "Beauty",        price: 1199, stock: 500,  unit: "ml",     lowStockThreshold: 100,totalSold: 186, revenue: 92814,  lastSold: "Yesterday",   image: U("1556228578-8c89e6adf883") },
+  { id: "9",  name: "Travel Pillow",            sku: "AC-061", category: "Accessories",   price: 299,  stock: 22,   unit: "pcs",    lowStockThreshold: 5,  totalSold: 134, revenue: 40066,  lastSold: "Today",       image: U("1582560475093-ba66accbc424") },
+  { id: "10", name: "Desk Calendar 2026",       sku: "ST-014", category: "Stationery",    price: 149,  stock: 9,    unit: "pcs",    lowStockThreshold: 5,  totalSold: 67,  revenue: 9983,   lastSold: "2 days ago",  image: U("1506784983877-45594efa4cbe") },
+  { id: "11", name: "Espresso Pods (10pk)",     sku: "FB-019", category: "Food & Bev",    price: 349,  stock: 38,   unit: "pcs",    lowStockThreshold: 10, totalSold: 298, revenue: 104002, lastSold: "Today",       image: U("1559496417-e7f25cb247f3") },
+  { id: "12", name: "USB-C Hub 7-in-1",         sku: "EL-067", category: "Electronics",   price: 2299, stock: 15,   unit: "pcs",    lowStockThreshold: 5,  totalSold: 44,  revenue: 101156, lastSold: "Yesterday",   image: U("1588508065123-287b28e013da") },
+  { id: "13", name: "Yoga Mat Pro",             sku: "SP-031", category: "Sports",        price: 1499, stock: 8,    unit: "pcs",    lowStockThreshold: 5,  totalSold: 62,  revenue: 92938,  lastSold: "3 days ago",  image: U("1544367567-0f2fcb009e0b") },
+  { id: "14", name: "Moisturiser SPF",          sku: "BE-041", category: "Beauty",        price: 649,  stock: 19,   unit: "pcs",    lowStockThreshold: 10, totalSold: 155, revenue: 100595, lastSold: "Yesterday",   image: U("1571781926291-c477ebfd024b") },
+  { id: "15", name: "Travel Wallet",            sku: "AC-078", category: "Accessories",   price: 799,  stock: 11,   unit: "pcs",    lowStockThreshold: 5,  totalSold: 48,  revenue: 38352,  lastSold: "4 days ago",  image: U("1553062407-98eeb64c6a62") },
+  { id: "16", name: "Basmati Rice Premium",     sku: "FB-031", category: "Food & Bev",    price: 89,   stock: 50,   unit: "kg",     lowStockThreshold: 10, totalSold: 320, revenue: 28480,  lastSold: "Today",       image: U("1536304929831-ee1ca9d44906") },
+  { id: "17", name: "Extra Virgin Olive Oil",   sku: "FB-042", category: "Food & Bev",    price: 450,  stock: 20,   unit: "litre",  lowStockThreshold: 5,  totalSold: 84,  revenue: 37800,  lastSold: "Yesterday",   image: U("1474979266404-7eaacbcd87c5") },
+  { id: "18", name: "Mixed Dry Fruits",         sku: "FB-056", category: "Food & Bev",    price: 12,   stock: 5000, unit: "g",      lowStockThreshold: 500,totalSold: 9200, revenue: 110400,lastSold: "Today",       image: U("1599599810769-bcde5a160d32") },
+  { id: "19", name: "Rose Water",               sku: "BE-055", category: "Beauty",        price: 2.5,  stock: 8000, unit: "ml",     lowStockThreshold: 500,totalSold: 45000, revenue: 112500,lastSold: "Today",      image: U("1596397249129-c7a0c6c90a7d") },
 ];
 
 let _products: Product[] = [...INITIAL];
