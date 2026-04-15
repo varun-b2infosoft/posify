@@ -36,6 +36,16 @@ import {
   heldOrderCount,
   subscribeHeldOrders,
 } from "@/store/holdOrders";
+import {
+  createDeliveryOrder,
+  updateDeliveryOrderItems,
+  pendingDeliveryCount,
+  subscribeDeliveryOrders,
+  getEditingDeliveryOrder,
+  setEditingDeliveryOrder,
+  DeliveryOrder as DeliveryOrderType,
+} from "@/store/deliveryOrders";
+import { DeliveryCheckoutParams } from "@/components/PaymentModal";
 
 interface StoreProduct {
   id: string;
@@ -62,11 +72,12 @@ const CATEGORIES = [
 ];
 
 const TAB_ROUTES: Record<string, string> = {
-  index: "/(tabs)/",
-  pos: "/(tabs)/pos",
-  products: "/(tabs)/products",
+  index:     "/(tabs)/",
+  pos:       "/(tabs)/pos",
+  products:  "/(tabs)/products",
   purchases: "/(tabs)/purchases",
-  profile: "/(tabs)/profile",
+  profile:   "/(tabs)/profile",
+  delivery:  "/delivery",
 };
 
 const COLLAPSED_H = 80;
@@ -337,13 +348,24 @@ export default function POSScreen() {
   const [holdModalVisible,  setHoldModalVisible]  = useState(false);
   const [heldPanelVisible,  setHeldPanelVisible]  = useState(false);
   const [heldCount,         setHeldCount]         = useState(() => heldOrderCount());
+  const [deliveryCount,     setDeliveryCount]     = useState(() => pendingDeliveryCount());
+  const [editingDelivery,   setEditingDelivery]   = useState<DeliveryOrderType | null>(null);
+  const [deliverySaved,     setDeliverySaved]     = useState(false);
 
   useFocusEffect(useCallback(() => {
     setAllProducts(getProducts());
     setHeldCount(heldOrderCount());
+    setDeliveryCount(pendingDeliveryCount());
+    const editing = getEditingDeliveryOrder();
+    if (editing) {
+      setEditingDelivery(editing);
+      setCart(editing.items as any);
+      setEditingDeliveryOrder(null);
+    }
     const unsubP = subscribeProducts(() => setAllProducts(getProducts()));
     const unsubH = subscribeHeldOrders(() => setHeldCount(heldOrderCount()));
-    return () => { unsubP(); unsubH(); };
+    const unsubD = subscribeDeliveryOrders(() => setDeliveryCount(pendingDeliveryCount()));
+    return () => { unsubP(); unsubH(); unsubD(); };
   }, []));
 
   const panelH     = useRef(new Animated.Value(0)).current;
@@ -430,6 +452,22 @@ export default function POSScreen() {
   const tax       = Math.round(subtotal * 0.18);
   const total     = subtotal + tax;
   const itemCount = cart.reduce((s, c) => s + (c.weightBased ? 1 : c.qty), 0);
+
+  const handleDeliveryCheckout = (params: DeliveryCheckoutParams) => {
+    setPayVisible(false);
+    createDeliveryOrder({
+      customer: params.customer,
+      items: cart.map(c => ({ id: c.id, name: c.name, price: c.price, qty: c.qty, unit: c.unit, weightBased: c.weightBased })),
+      subtotal,
+      gst: tax,
+      total,
+      amountReceived: params.amountReceived,
+    });
+    setEditingDelivery(null);
+    setCart([]);
+    setDeliverySaved(true);
+    setTimeout(() => setDeliverySaved(false), 2500);
+  };
 
   const handleHoldConfirm = (orderName: string, customerName: string, customerPhone: string) => {
     if (cart.length === 0) return;
@@ -547,8 +585,10 @@ export default function POSScreen() {
       <PaymentModal
         visible={payVisible}
         total={total}
-        onClose={() => setPayVisible(false)}
+        onClose={() => { setPayVisible(false); }}
         onSuccess={handlePaySuccess}
+        onDelivery={handleDeliveryCheckout}
+        isEditMode={!!editingDelivery}
       />
 
       <WeightInputModal
@@ -582,26 +622,54 @@ export default function POSScreen() {
             <Feather name="menu" size={22} color="#fff" />
           </TouchableOpacity>
         )}
-        <Text style={[styles.headerTitle, { fontFamily: "Inter_700Bold" }]}>POS</Text>
-        <TouchableOpacity
-          onPress={() => setHeldPanelVisible(true)}
-          style={[
-            styles.heldBtn,
-            { backgroundColor: heldCount > 0 ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.1)" },
-          ]}
-        >
-          <Feather name="pause-circle" size={15} color={heldCount > 0 ? "#fff" : "rgba(255,255,255,0.65)"} />
-          <Text style={[
-            styles.heldBtnText,
-            { fontFamily: "Inter_600SemiBold", color: heldCount > 0 ? "#fff" : "rgba(255,255,255,0.65)" },
-          ]}>
-            {heldCount > 0 ? `Held (${heldCount})` : "Held"}
-          </Text>
-          {heldCount > 0 && (
-            <View style={styles.heldDot} />
-          )}
-        </TouchableOpacity>
+        <Text style={[styles.headerTitle, { fontFamily: "Inter_700Bold" }]}>
+          {editingDelivery ? `Edit ${editingDelivery.orderNo}` : "POS"}
+        </Text>
+        <View style={{ flexDirection: "row", gap: 6 }}>
+          <TouchableOpacity
+            onPress={() => router.push("/delivery" as any)}
+            style={[styles.heldBtn, { backgroundColor: deliveryCount > 0 ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.1)" }]}
+          >
+            <Feather name="truck" size={14} color={deliveryCount > 0 ? "#fff" : "rgba(255,255,255,0.65)"} />
+            <Text style={[styles.heldBtnText, { fontFamily: "Inter_600SemiBold", color: deliveryCount > 0 ? "#fff" : "rgba(255,255,255,0.65)" }]}>
+              {deliveryCount > 0 ? `Delivery (${deliveryCount})` : "Delivery"}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setHeldPanelVisible(true)}
+            style={[styles.heldBtn, { backgroundColor: heldCount > 0 ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.1)" }]}
+          >
+            <Feather name="pause-circle" size={14} color={heldCount > 0 ? "#fff" : "rgba(255,255,255,0.65)"} />
+            <Text style={[styles.heldBtnText, { fontFamily: "Inter_600SemiBold", color: heldCount > 0 ? "#fff" : "rgba(255,255,255,0.65)" }]}>
+              {heldCount > 0 ? `Held (${heldCount})` : "Held"}
+            </Text>
+            {heldCount > 0 && <View style={styles.heldDot} />}
+          </TouchableOpacity>
+        </View>
       </View>
+
+      {/* Edit delivery mode banner */}
+      {editingDelivery && (
+        <View style={[styles.editBanner, { backgroundColor: "#4F46E5", }]}>
+          <Feather name="edit-2" size={13} color="#fff" />
+          <Text style={[styles.editBannerText, { fontFamily: "Inter_600SemiBold" }]}>
+            Editing {editingDelivery.orderNo} for {editingDelivery.customer.name}
+          </Text>
+          <TouchableOpacity onPress={() => { setEditingDelivery(null); setCart([]); }}>
+            <Feather name="x" size={15} color="rgba(255,255,255,0.8)" />
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* Delivery saved flash */}
+      {deliverySaved && (
+        <View style={[styles.editBanner, { backgroundColor: "#10B981" }]}>
+          <Feather name="check-circle" size={13} color="#fff" />
+          <Text style={[styles.editBannerText, { fontFamily: "Inter_600SemiBold" }]}>
+            Delivery order saved! Track it in Delivery Orders.
+          </Text>
+        </View>
+      )}
 
       {/* Search bar */}
       <View style={[styles.searchBar, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -739,12 +807,27 @@ export default function POSScreen() {
           </View>
 
           <TouchableOpacity
-            style={[styles.payBtn, { backgroundColor: colors.success }]}
-            onPress={() => setPayVisible(true)}
+            style={[styles.payBtn, { backgroundColor: editingDelivery ? "#4F46E5" : colors.success }]}
+            onPress={() => {
+              if (editingDelivery) {
+                updateDeliveryOrderItems(
+                  editingDelivery.id,
+                  cart.map(c => ({ id: c.id, name: c.name, price: c.price, qty: c.qty, unit: c.unit, weightBased: c.weightBased })),
+                  subtotal, tax, total
+                );
+                setCart([]);
+                setEditingDelivery(null);
+                router.push(`/delivery/${editingDelivery.id}` as any);
+              } else {
+                setPayVisible(true);
+              }
+            }}
             activeOpacity={0.85}
           >
-            <Text style={[styles.payBtnText, { fontFamily: "Inter_700Bold" }]}>Pay</Text>
-            <Feather name="arrow-right" size={14} color="#fff" />
+            <Text style={[styles.payBtnText, { fontFamily: "Inter_700Bold" }]}>
+              {editingDelivery ? "Save" : "Pay"}
+            </Text>
+            <Feather name={editingDelivery ? "save" : "arrow-right"} size={14} color="#fff" />
           </TouchableOpacity>
         </TouchableOpacity>
 
@@ -839,13 +922,29 @@ export default function POSScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.proceedBtn, { backgroundColor: colors.success }]}
-              onPress={() => setPayVisible(true)}
+              style={[styles.proceedBtn, { backgroundColor: editingDelivery ? "#4F46E5" : colors.success }]}
+              onPress={() => {
+                if (editingDelivery) {
+                  updateDeliveryOrderItems(
+                    editingDelivery.id,
+                    cart.map(c => ({ id: c.id, name: c.name, price: c.price, qty: c.qty, unit: c.unit, weightBased: c.weightBased })),
+                    subtotal, tax, total
+                  );
+                  setCart([]);
+                  setEditingDelivery(null);
+                  router.push(`/delivery/${editingDelivery.id}` as any);
+                } else {
+                  setPayVisible(true);
+                }
+              }}
               activeOpacity={0.85}
             >
-              <Feather name="credit-card" size={17} color="#fff" />
+              <Feather name={editingDelivery ? "save" : "credit-card"} size={17} color="#fff" />
               <Text style={[styles.proceedText, { fontFamily: "Inter_700Bold" }]}>
-                Proceed to Pay · ₹{total.toLocaleString()}
+                {editingDelivery
+                  ? `Save Delivery Update · ₹${total.toLocaleString()}`
+                  : `Proceed to Pay · ₹${total.toLocaleString()}`
+                }
               </Text>
             </TouchableOpacity>
           </View>
@@ -991,9 +1090,15 @@ const styles = StyleSheet.create({
   totalLabel:   { fontSize: 15 },
   totalValue:   { fontSize: 15 },
 
+  editBanner: {
+    flexDirection: "row", alignItems: "center", gap: 8,
+    paddingHorizontal: 14, paddingVertical: 9,
+  },
+  editBannerText: { flex: 1, color: "#fff", fontSize: 12 },
+
   heldBtn: {
     flexDirection: "row", alignItems: "center", gap: 5,
-    paddingHorizontal: 11, paddingVertical: 6, borderRadius: 12,
+    paddingHorizontal: 8, paddingVertical: 5, borderRadius: 10,
   },
   heldBtnText: { fontSize: 13 },
   heldDot: {
