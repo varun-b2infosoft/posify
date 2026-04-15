@@ -63,7 +63,18 @@ function RootLayoutNav() {
       <Stack.Screen name="help/videos"            options={{ headerShown: false, animation: "slide_from_right" }} />
       <Stack.Screen name="help/terms"             options={{ headerShown: false, animation: "slide_from_right" }} />
       <Stack.Screen name="help/privacy"           options={{ headerShown: false, animation: "slide_from_right" }} />
-      <Stack.Screen name="help/licenses"          options={{ headerShown: false, animation: "slide_from_right" }} />
+      <Stack.Screen name="help/licenses"            options={{ headerShown: false, animation: "slide_from_right" }} />
+      <Stack.Screen name="auth/customer-login"     options={{ headerShown: false, animation: "slide_from_right" }} />
+      <Stack.Screen name="customer/index"          options={{ headerShown: false, animation: "fade" }} />
+      <Stack.Screen name="customer/shops"          options={{ headerShown: false, animation: "slide_from_right" }} />
+      <Stack.Screen name="customer/browse"         options={{ headerShown: false, animation: "slide_from_right" }} />
+      <Stack.Screen name="customer/orders"         options={{ headerShown: false, animation: "slide_from_right" }} />
+      <Stack.Screen name="customer/track"          options={{ headerShown: false, animation: "slide_from_right" }} />
+      <Stack.Screen name="customer/wallet"         options={{ headerShown: false, animation: "slide_from_right" }} />
+      <Stack.Screen name="customer/loyalty"        options={{ headerShown: false, animation: "slide_from_right" }} />
+      <Stack.Screen name="customer/referral"       options={{ headerShown: false, animation: "slide_from_right" }} />
+      <Stack.Screen name="customer/analytics"      options={{ headerShown: false, animation: "slide_from_right" }} />
+      <Stack.Screen name="customer/profile"        options={{ headerShown: false, animation: "slide_from_right" }} />
     </Stack>
   );
 }
