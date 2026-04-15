@@ -63,9 +63,28 @@ export default function CustomerCreditScreen() {
 
   let runningBalance = 0;
   const txsWithBalance = [...txs].reverse().map(tx => {
-    runningBalance += tx.type === "sale" ? tx.amount : -tx.amount;
-    return { ...tx, balance: Math.max(0, runningBalance) };
+    if (tx.type === "sale")    runningBalance = Math.max(0, runningBalance + tx.amount);
+    if (tx.type === "payment") runningBalance = Math.max(0, runningBalance - tx.amount);
+    return { ...tx, balance: runningBalance };
   }).reverse();
+
+  const txIcon = (type: string) => {
+    if (type === "sale")       return { icon: "arrow-up-right"  as const, bg: "#FEE2E2", color: "#EF4444" };
+    if (type === "payment")    return { icon: "arrow-down-left" as const, bg: "#D1FAE5", color: "#10B981" };
+    if (type === "wallet_in")  return { icon: "pocket"          as const, bg: "#DBEAFE", color: "#3B82F6" };
+    if (type === "wallet_out") return { icon: "shopping-bag"    as const, bg: "#FEF3C7", color: "#F59E0B" };
+    return { icon: "circle" as const, bg: "#F3F4F6", color: "#6B7280" };
+  };
+  const txLabel = (tx: CreditTransaction) => {
+    if (tx.note) return tx.note;
+    if (tx.type === "sale")       return "Credit Sale";
+    if (tx.type === "payment")    return "Payment Received";
+    if (tx.type === "wallet_in")  return "Wallet Deposit";
+    if (tx.type === "wallet_out") return "Wallet Used";
+    return "Transaction";
+  };
+  const txAmtSign = (type: string) => type === "sale" || type === "wallet_in" ? "+" : "−";
+  const txAmtColor = (type: string) => type === "sale" ? "#EF4444" : type === "payment" ? "#10B981" : type === "wallet_in" ? "#3B82F6" : "#F59E0B";
 
   if (!customer) {
     return (
@@ -94,12 +113,25 @@ export default function CustomerCreditScreen() {
       </View>
 
       <View style={[styles.balanceBanner, { backgroundColor: customer.creditBalance > 0 ? "#FEF2F2" : "#F0FDF4", borderColor: customer.creditBalance > 0 ? "#FECACA" : "#BBF7D0" }]}>
-        <Text style={[styles.balanceAmt, { color: customer.creditBalance > 0 ? "#DC2626" : "#15803D", fontFamily: "Inter_700Bold" }]}>
-          ₹{customer.creditBalance.toLocaleString()}
-        </Text>
-        <Text style={[styles.balanceLabel, { color: customer.creditBalance > 0 ? "#B91C1C" : "#166534", fontFamily: "Inter_400Regular" }]}>
-          {customer.creditBalance > 0 ? "Outstanding Balance" : "No dues — all clear!"}
-        </Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 12, flex: 1 }}>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.balanceAmt, { color: customer.creditBalance > 0 ? "#DC2626" : "#15803D", fontFamily: "Inter_700Bold" }]}>
+              ₹{customer.creditBalance.toLocaleString()}
+            </Text>
+            <Text style={[styles.balanceLabel, { color: customer.creditBalance > 0 ? "#B91C1C" : "#166534", fontFamily: "Inter_400Regular" }]}>
+              {customer.creditBalance > 0 ? "Outstanding (Due)" : "No dues — all clear!"}
+            </Text>
+          </View>
+          {customer.walletBalance > 0 && (
+            <View style={[styles.walletBadge, { backgroundColor: "#DBEAFE", borderColor: "#BFDBFE" }]}>
+              <Feather name="pocket" size={12} color="#3B82F6" />
+              <View>
+                <Text style={[{ color: "#1D4ED8", fontSize: 14, fontFamily: "Inter_700Bold" }]}>₹{customer.walletBalance.toLocaleString()}</Text>
+                <Text style={[{ color: "#1D4ED8", fontSize: 10, fontFamily: "Inter_400Regular" }]}>Wallet Balance</Text>
+              </View>
+            </View>
+          )}
+        </View>
         {customer.creditBalance > 0 && (
           <TouchableOpacity
             style={[styles.quickPayBtn, { backgroundColor: "#10B981" }]}
@@ -118,32 +150,45 @@ export default function CustomerCreditScreen() {
             <Text style={{ color: colors.mutedForeground, marginTop: 12, fontFamily: "Inter_400Regular" }}>No credit transactions yet</Text>
           </View>
         )}
-        {txsWithBalance.map((tx, i) => (
-          <View
-            key={tx.id}
-            style={[styles.txRow, { backgroundColor: colors.card, borderColor: colors.border, borderTopWidth: i === 0 ? 1 : 0, borderRadius: i === 0 ? 0 : 0, marginBottom: 0 }]}
-          >
-            <View style={[styles.txIcon, { backgroundColor: tx.type === "sale" ? "#FEE2E2" : "#D1FAE5" }]}>
-              <Feather name={tx.type === "sale" ? "arrow-up-right" : "arrow-down-left"} size={14} color={tx.type === "sale" ? "#EF4444" : "#10B981"} />
+        {txsWithBalance.map((tx, i) => {
+          const ic = txIcon(tx.type);
+          const isWallet = tx.type === "wallet_in" || tx.type === "wallet_out";
+          return (
+            <View
+              key={tx.id}
+              style={[styles.txRow, { backgroundColor: colors.card, borderColor: colors.border, borderTopWidth: i === 0 ? 1 : 0 }]}
+            >
+              <View style={[styles.txIcon, { backgroundColor: ic.bg }]}>
+                <Feather name={ic.icon} size={14} color={ic.color} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                  <Text style={[styles.txNote, { color: colors.foreground, fontFamily: "Inter_500Medium" }]} numberOfLines={1}>
+                    {txLabel(tx)}
+                  </Text>
+                  {isWallet && (
+                    <View style={[{ paddingHorizontal: 5, paddingVertical: 1, borderRadius: 4, backgroundColor: "#DBEAFE" }]}>
+                      <Text style={{ color: "#1D4ED8", fontSize: 9, fontFamily: "Inter_600SemiBold" }}>WALLET</Text>
+                    </View>
+                  )}
+                </View>
+                <Text style={[styles.txDate, { color: colors.mutedForeground, fontFamily: "Inter_400Regular" }]}>
+                  {new Date(tx.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                </Text>
+              </View>
+              <View style={{ alignItems: "flex-end" }}>
+                <Text style={[styles.txAmount, { color: txAmtColor(tx.type), fontFamily: "Inter_700Bold" }]}>
+                  {txAmtSign(tx.type)}₹{tx.amount.toLocaleString()}
+                </Text>
+                {!isWallet && (
+                  <Text style={[styles.txBalance, { color: colors.mutedForeground, fontFamily: "Inter_400Regular" }]}>
+                    Due ₹{tx.balance.toLocaleString()}
+                  </Text>
+                )}
+              </View>
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.txNote, { color: colors.foreground, fontFamily: "Inter_500Medium" }]} numberOfLines={1}>
-                {tx.note || (tx.type === "sale" ? "Credit Sale" : "Payment Received")}
-              </Text>
-              <Text style={[styles.txDate, { color: colors.mutedForeground, fontFamily: "Inter_400Regular" }]}>
-                {new Date(tx.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
-              </Text>
-            </View>
-            <View style={{ alignItems: "flex-end" }}>
-              <Text style={[styles.txAmount, { color: tx.type === "sale" ? "#EF4444" : "#10B981", fontFamily: "Inter_700Bold" }]}>
-                {tx.type === "sale" ? "+" : "-"}₹{tx.amount.toLocaleString()}
-              </Text>
-              <Text style={[styles.txBalance, { color: colors.mutedForeground, fontFamily: "Inter_400Regular" }]}>
-                Bal ₹{tx.balance.toLocaleString()}
-              </Text>
-            </View>
-          </View>
-        ))}
+          );
+        })}
       </ScrollView>
 
       <Modal visible={modal} animationType="slide" transparent onRequestClose={() => setModal(false)}>
@@ -216,6 +261,7 @@ const styles = StyleSheet.create({
   balanceAmt:    { fontSize: 32 },
   balanceLabel:  { fontSize: 13 },
   quickPayBtn:   { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, marginTop: 4 },
+  walletBadge:   { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10, borderWidth: 1 },
   quickPayText:  { color: "#fff", fontSize: 13 },
   txRow:         { flexDirection: "row", alignItems: "center", gap: 12, padding: 14, borderWidth: 1 },
   txIcon:        { width: 34, height: 34, borderRadius: 10, alignItems: "center", justifyContent: "center" },
