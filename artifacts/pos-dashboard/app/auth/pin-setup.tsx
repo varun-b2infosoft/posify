@@ -138,7 +138,7 @@ export default function PinSetupScreen() {
           {phase === "create"
             ? (isChanging
                 ? "Choose a new PIN to secure your app"
-                : "This PIN will be required every time you open POSify")
+                : "This PIN will be required every time you open IPOS")
             : "Re-enter your PIN to confirm"}
         </Text>
 
