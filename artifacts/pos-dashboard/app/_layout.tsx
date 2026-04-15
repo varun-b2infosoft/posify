@@ -53,6 +53,8 @@ function RootLayoutNav() {
       <Stack.Screen name="notifications/index"  options={{ headerShown: false, animation: "slide_from_right" }} />
       <Stack.Screen name="settings/index"       options={{ headerShown: false, animation: "slide_from_right" }} />
       <Stack.Screen name="returns/index"        options={{ headerShown: false, animation: "slide_from_right" }} />
+      <Stack.Screen name="delivery/index"       options={{ headerShown: false, animation: "slide_from_right" }} />
+      <Stack.Screen name="delivery/[id]"        options={{ headerShown: false, animation: "slide_from_right" }} />
       <Stack.Screen name="security/index"       options={{ headerShown: false, animation: "slide_from_right" }} />
       <Stack.Screen name="help/index"           options={{ headerShown: false, animation: "slide_from_right" }} />
       <Stack.Screen name="store-settings/index"    options={{ headerShown: false, animation: "slide_from_right" }} />
