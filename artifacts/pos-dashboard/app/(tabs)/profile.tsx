@@ -18,6 +18,7 @@ import { getExpenses, subscribeExpenses } from "@/store/expenses";
 import { getCustomers, getTotalOutstanding, subscribeCustomers } from "@/store/customers";
 import { getInvoices, subscribeInvoices } from "@/store/invoices";
 import { getUnreadCount, subscribeNotifications } from "@/store/notifications";
+import { pendingDeliveryCount, subscribeDeliveryOrders } from "@/store/deliveryOrders";
 
 export default function ProfileScreen() {
   const colors  = useColors();
@@ -32,6 +33,7 @@ export default function ProfileScreen() {
   const [unreadCount,    setUnreadCount]    = useState(() => getUnreadCount());
   const [outstanding,    setOutstanding]    = useState(() => getTotalOutstanding());
   const [invoiceCount,   setInvoiceCount]   = useState(() => getInvoices().filter(i => !i.paid && !i.returned).length);
+  const [deliveryPending, setDeliveryPending] = useState(() => pendingDeliveryCount());
   const nowMonth = new Date().getMonth();
   const [monthExpenses,  setMonthExpenses]  = useState(() => getExpenses().filter(e => new Date(e.date).getMonth() === nowMonth).reduce((s, e) => s + e.amount, 0));
 
@@ -50,7 +52,8 @@ export default function ProfileScreen() {
       const m = new Date().getMonth();
       setMonthExpenses(getExpenses().filter(e => new Date(e.date).getMonth() === m).reduce((s, e) => s + e.amount, 0));
     });
-    return () => { unsub1(); unsub2(); unsub3(); unsub4(); unsub5(); unsub6(); };
+    const unsub7 = subscribeDeliveryOrders(() => setDeliveryPending(pendingDeliveryCount()));
+    return () => { unsub1(); unsub2(); unsub3(); unsub4(); unsub5(); unsub6(); unsub7(); };
   }, []));
 
   const MANAGEMENT_ITEMS = [
@@ -107,6 +110,15 @@ export default function ProfileScreen() {
       badge: invoiceCount > 0 ? String(invoiceCount) : null,
       badgeColor: "#F59E0B",
       onPress: () => router.push("/invoices" as any),
+    },
+    {
+      icon: "truck",
+      label: "Delivery Orders",
+      sub: deliveryPending > 0 ? `${deliveryPending} pending delivery${deliveryPending > 1 ? "s" : ""}` : "Track & manage deliveries",
+      color: "#06B6D4",
+      badge: deliveryPending > 0 ? String(deliveryPending) : null,
+      badgeColor: "#06B6D4",
+      onPress: () => router.push("/delivery" as any),
     },
     {
       icon: "rotate-ccw",
