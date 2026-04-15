@@ -15,6 +15,7 @@ import { Feather } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFocusEffect } from "expo-router";
 import * as Haptics from "expo-haptics";
+import { Image } from "expo-image";
 import { useColors } from "@/hooks/useColors";
 import { useLayout } from "@/hooks/useLayout";
 import { Sidebar } from "@/components/Sidebar";
@@ -34,6 +35,7 @@ interface StoreProduct {
   category: string;
   stock: number;
   unit: string;
+  image?: string;
 }
 
 interface CartItem {
@@ -70,15 +72,16 @@ function ProductCard({
   cartItem?: CartItem;
   onPress: () => void;
 }) {
-  const colors      = useColors();
-  const inCart      = !!cartItem;
-  const isLow       = item.stock <= 5;
-  const catColor    = CATEGORY_COLORS[item.category] ?? CATEGORY_COLORS.default;
-  const catIcon     = CATEGORY_ICONS[item.category]  ?? CATEGORY_ICONS.default;
-  const weightItem  = isWeightBased(item.unit);
+  const colors     = useColors();
+  const inCart     = !!cartItem;
+  const isLow      = item.stock > 0 && item.stock <= 5;
+  const isOut      = item.stock === 0;
+  const catColor   = CATEGORY_COLORS[item.category] ?? CATEGORY_COLORS.default;
+  const catIcon    = CATEGORY_ICONS[item.category]  ?? CATEGORY_ICONS.default;
+  const weightItem = isWeightBased(item.unit);
 
   const qtyLabel = cartItem
-    ? (weightItem ? formatQty(cartItem.qty, item.unit) : String(cartItem.qty))
+    ? (weightItem ? formatQty(cartItem.qty, item.unit) : `×${cartItem.qty}`)
     : null;
 
   return (
@@ -86,50 +89,77 @@ function ProductCard({
       style={[
         styles.productCard,
         {
-          backgroundColor: inCart ? colors.primary : colors.card,
-          borderColor: inCart ? colors.primary : isLow ? "#F59E0B60" : colors.border,
-          borderWidth: isLow && !inCart ? 1.5 : 1,
+          backgroundColor: colors.card,
+          borderColor: inCart ? colors.primary : isLow ? "#F59E0B80" : isOut ? "#EF444460" : colors.border,
+          borderWidth: inCart ? 2 : isLow || isOut ? 1.5 : 1,
         },
       ]}
       onPress={onPress}
-      activeOpacity={0.78}
+      activeOpacity={0.82}
     >
-      <View style={[styles.cardIcon, { backgroundColor: inCart ? "rgba(255,255,255,0.2)" : catColor + "18" }]}>
-        <Feather name={catIcon as any} size={20} color={inCart ? "#fff" : catColor} />
+      {/* Image section — dominant top area */}
+      <View style={[styles.cardImageWrap, { backgroundColor: catColor + "14" }]}>
+        {item.image ? (
+          <Image
+            source={{ uri: item.image }}
+            style={styles.cardImage}
+            contentFit="cover"
+            transition={200}
+          />
+        ) : (
+          <View style={[styles.cardImageFallback, { backgroundColor: catColor + "18" }]}>
+            <Feather name={catIcon as any} size={26} color={catColor} />
+          </View>
+        )}
+
+        {/* In-cart overlay */}
+        {inCart && <View style={[styles.cartOverlay, { backgroundColor: colors.primary + "55" }]} />}
+
+        {/* In-cart checkmark */}
+        {inCart && (
+          <View style={[styles.cartCheck, { backgroundColor: colors.primary }]}>
+            <Feather name="check" size={10} color="#fff" />
+          </View>
+        )}
+
+        {/* Quantity badge */}
+        {inCart && qtyLabel && (
+          <View style={[styles.qtyBadge, { backgroundColor: colors.primary }]}>
+            <Text style={[styles.qtyBadgeText, { fontFamily: "Inter_700Bold" }]} numberOfLines={1}>
+              {qtyLabel}
+            </Text>
+          </View>
+        )}
+
+        {/* Low-stock / out-of-stock dot */}
+        {(isLow || isOut) && !inCart && (
+          <View style={[styles.stockDot, { backgroundColor: isOut ? "#EF4444" : "#F59E0B" }]} />
+        )}
+
+        {/* Weight unit tag */}
+        {weightItem && (
+          <View style={[styles.weightTag, { backgroundColor: "rgba(0,0,0,0.50)" }]}>
+            <Text style={[styles.weightTagText, { fontFamily: "Inter_600SemiBold", color: "#fff" }]}>
+              {item.unit}
+            </Text>
+          </View>
+        )}
       </View>
 
-      {isLow && !inCart && (
-        <View style={[styles.lowDot, { backgroundColor: "#F59E0B" }]} />
-      )}
-
-      {inCart && qtyLabel && (
-        <View style={styles.qtyBadge}>
-          <Text style={[styles.qtyBadgeText, { fontFamily: "Inter_700Bold" }]} numberOfLines={1}>
-            {qtyLabel}
-          </Text>
-        </View>
-      )}
-
-      {weightItem && (
-        <View style={[styles.weightTag, { backgroundColor: inCart ? "rgba(255,255,255,0.2)" : catColor + "25" }]}>
-          <Feather name="sliders" size={9} color={inCart ? "#fff" : catColor} />
-          <Text style={[styles.weightTagText, { color: inCart ? "#fff" : catColor, fontFamily: "Inter_600SemiBold" }]}>
-            {item.unit}
-          </Text>
-        </View>
-      )}
-
-      <Text
-        style={[styles.cardName, { color: inCart ? "#fff" : colors.foreground, fontFamily: "Inter_600SemiBold" }]}
-        numberOfLines={2}
-      >
-        {item.name}
-      </Text>
-      <Text
-        style={[styles.cardPrice, { color: inCart ? "rgba(255,255,255,0.95)" : catColor, fontFamily: "Inter_700Bold" }]}
-      >
-        ₹{item.price}{weightItem ? `/${item.unit}` : ""}
-      </Text>
+      {/* Name + price below image */}
+      <View style={styles.cardInfo}>
+        <Text
+          style={[styles.cardName, { color: colors.foreground, fontFamily: "Inter_600SemiBold" }]}
+          numberOfLines={1}
+        >
+          {item.name}
+        </Text>
+        <Text
+          style={[styles.cardPrice, { color: inCart ? colors.primary : catColor, fontFamily: "Inter_700Bold" }]}
+        >
+          ₹{item.price}{weightItem ? `/${item.unit}` : ""}
+        </Text>
+      </View>
     </TouchableOpacity>
   );
 }
@@ -735,25 +765,43 @@ const styles = StyleSheet.create({
   gridRow: { flexDirection: "row", gap: 8, marginBottom: 8 },
 
   productCard: {
-    flex: 1, borderRadius: 12, padding: 10, gap: 5,
-    minHeight: 115, position: "relative", borderWidth: 1,
+    flex: 1, borderRadius: 12,
+    overflow: "hidden", position: "relative", borderWidth: 1,
   },
-  cardIcon: { width: 36, height: 36, borderRadius: 9, alignItems: "center", justifyContent: "center" },
-  lowDot:   { position: "absolute", top: 8, right: 8, width: 7, height: 7, borderRadius: 4, backgroundColor: "#F59E0B" },
+  cardImageWrap: {
+    height: 108, position: "relative", overflow: "hidden",
+  },
+  cardImage: { width: "100%", height: "100%" },
+  cardImageFallback: {
+    width: "100%", height: "100%",
+    alignItems: "center", justifyContent: "center",
+  },
+  cartOverlay: {
+    position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
+  },
+  cartCheck: {
+    position: "absolute", top: 6, left: 6,
+    width: 20, height: 20, borderRadius: 10,
+    alignItems: "center", justifyContent: "center",
+  },
   qtyBadge: {
     position: "absolute", top: 6, right: 6,
-    backgroundColor: "#10B981", borderRadius: 8,
-    paddingHorizontal: 5, paddingVertical: 2, minWidth: 20, alignItems: "center",
+    borderRadius: 8,
+    paddingHorizontal: 5, paddingVertical: 2, minWidth: 22, alignItems: "center",
   },
   qtyBadgeText: { color: "#fff", fontSize: 9 },
+  stockDot: {
+    position: "absolute", top: 7, left: 7,
+    width: 8, height: 8, borderRadius: 4,
+  },
   weightTag: {
-    position: "absolute", bottom: 10, right: 7,
-    flexDirection: "row", alignItems: "center", gap: 2,
-    paddingHorizontal: 5, paddingVertical: 2, borderRadius: 6,
+    position: "absolute", bottom: 5, right: 5,
+    paddingHorizontal: 5, paddingVertical: 2, borderRadius: 5,
   },
   weightTagText: { fontSize: 9 },
-  cardName:  { fontSize: 12, lineHeight: 15 },
-  cardPrice: { fontSize: 13 },
+  cardInfo:  { paddingHorizontal: 8, paddingTop: 6, paddingBottom: 8, gap: 2 },
+  cardName:  { fontSize: 11, lineHeight: 14 },
+  cardPrice: { fontSize: 12 },
 
   emptyState: { alignItems: "center", justifyContent: "center", gap: 10, paddingTop: 80 },
   emptyText:  { fontSize: 15 },
