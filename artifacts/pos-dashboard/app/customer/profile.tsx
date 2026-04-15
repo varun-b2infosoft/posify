@@ -250,7 +250,7 @@ export default function CustomerProfileScreen() {
 
         {/* App version */}
         <Text style={[styles.appVersion, { color: colors.mutedForeground, fontFamily: "Inter_400Regular" }]}>
-          POSify Customer v1.0.0
+          IPOS Customer v1.0.0
         </Text>
       </ScrollView>
 
