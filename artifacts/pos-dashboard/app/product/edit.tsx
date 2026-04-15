@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
+  ActionSheetIOS,
   Alert,
   KeyboardAvoidingView,
   Platform,
@@ -12,6 +13,8 @@ import {
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { Feather } from "@expo/vector-icons";
+import { Image } from "expo-image";
+import * as ImagePicker from "expo-image-picker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
 import {
@@ -32,6 +35,7 @@ type FormData = {
   unit: string;
   stock: string;
   lowStockThreshold: string;
+  image: string;
 };
 
 function FormField({
@@ -184,6 +188,7 @@ export default function ProductEditScreen() {
     unit:              existing?.unit              ?? "pcs",
     stock:             existing?.stock?.toString() ?? "",
     lowStockThreshold: existing?.lowStockThreshold?.toString() ?? "5",
+    image:             existing?.image             ?? "",
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
@@ -195,6 +200,45 @@ export default function ProductEditScreen() {
 
   const autoSku = () => {
     if (!form.sku) setForm((f) => ({ ...f, sku: generateSku(f.category) }));
+  };
+
+  const pickImageFrom = async (source: "gallery" | "camera") => {
+    if (Platform.OS !== "web") {
+      const permResult = source === "camera"
+        ? await ImagePicker.requestCameraPermissionsAsync()
+        : await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (permResult.status !== "granted") {
+        Alert.alert("Permission needed", `Please grant ${source === "camera" ? "camera" : "photo library"} access to upload product images.`);
+        return;
+      }
+    }
+    const launchFn = source === "camera"
+      ? ImagePicker.launchCameraAsync
+      : ImagePicker.launchImageLibraryAsync;
+    const result = await launchFn({
+      mediaTypes: ["images"] as any,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.82,
+    });
+    if (!result.canceled && result.assets[0]) {
+      set("image")(result.assets[0].uri);
+    }
+  };
+
+  const handlePickImage = () => {
+    if (Platform.OS === "ios") {
+      ActionSheetIOS.showActionSheetWithOptions(
+        { options: ["Cancel", "Choose from Gallery", "Take Photo"], cancelButtonIndex: 0 },
+        (idx) => { if (idx === 1) pickImageFrom("gallery"); else if (idx === 2) pickImageFrom("camera"); }
+      );
+    } else {
+      Alert.alert("Add Image", "Choose an option", [
+        { text: "Gallery", onPress: () => pickImageFrom("gallery") },
+        { text: "Camera",  onPress: () => pickImageFrom("camera") },
+        { text: "Cancel", style: "cancel" },
+      ]);
+    }
   };
 
   const validate = () => {
@@ -217,6 +261,7 @@ export default function ProductEditScreen() {
       unit:              form.unit,
       stock:             Number(form.stock),
       lowStockThreshold: Number(form.lowStockThreshold) || 5,
+      image:             form.image || undefined,
     };
     if (isEditing && existing) {
       updateProduct({ ...existing, ...data });
@@ -340,19 +385,62 @@ export default function ProductEditScreen() {
             />
           </Section>
 
-          {/* Image placeholder */}
+          {/* Product Image */}
           <Section title="Product Image">
-            <TouchableOpacity style={[styles.imagePicker, { borderColor: colors.border, backgroundColor: colors.secondary }]}>
-              <View style={[styles.imageIconBox, { backgroundColor: catColor + "18" }]}>
-                <Feather name="camera" size={26} color={catColor} />
+            {form.image ? (
+              <View style={styles.imagePreviewWrap}>
+                <Image
+                  source={{ uri: form.image }}
+                  style={styles.imagePreview}
+                  contentFit="cover"
+                  transition={200}
+                />
+                <View style={styles.imageActions}>
+                  <TouchableOpacity
+                    style={[styles.imageActionBtn, { backgroundColor: colors.secondary, borderColor: colors.border, flex: 1 }]}
+                    onPress={handlePickImage}
+                  >
+                    <Feather name="refresh-cw" size={14} color={colors.primary} />
+                    <Text style={[styles.imageActionText, { color: colors.primary, fontFamily: "Inter_600SemiBold" }]}>Replace</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.imageActionBtn, { backgroundColor: "#FEF2F2", borderColor: "#FCA5A5" }]}
+                    onPress={() => set("image")("")}
+                  >
+                    <Feather name="trash-2" size={14} color="#DC2626" />
+                    <Text style={[styles.imageActionText, { color: "#DC2626", fontFamily: "Inter_600SemiBold" }]}>Remove</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
-              <Text style={[styles.imagePickerText, { color: colors.foreground, fontFamily: "Inter_500Medium" }]}>
-                Upload Product Image
-              </Text>
-              <Text style={[styles.imagePickerSub, { color: colors.mutedForeground, fontFamily: "Inter_400Regular" }]}>
-                Tap to choose from gallery or camera
-              </Text>
-            </TouchableOpacity>
+            ) : (
+              <View style={{ gap: 10 }}>
+                <TouchableOpacity
+                  style={[styles.imagePicker, { borderColor: catColor + "60", backgroundColor: catColor + "08" }]}
+                  onPress={() => pickImageFrom("gallery")}
+                >
+                  <View style={[styles.imageIconBox, { backgroundColor: catColor + "18" }]}>
+                    <Feather name="image" size={26} color={catColor} />
+                  </View>
+                  <Text style={[styles.imagePickerText, { color: colors.foreground, fontFamily: "Inter_600SemiBold" }]}>
+                    Add Product Image
+                  </Text>
+                  <Text style={[styles.imagePickerSub, { color: colors.mutedForeground, fontFamily: "Inter_400Regular" }]}>
+                    Tap to choose from gallery
+                  </Text>
+                </TouchableOpacity>
+                {Platform.OS !== "web" && (
+                  <TouchableOpacity
+                    style={[styles.cameraBtn, { borderColor: colors.border, backgroundColor: colors.secondary }]}
+                    onPress={() => pickImageFrom("camera")}
+                  >
+                    <Feather name="camera" size={15} color={colors.mutedForeground} />
+                    <Text style={[styles.cameraBtnText, { color: colors.mutedForeground, fontFamily: "Inter_500Medium" }]}>
+                      Take a photo instead
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            )}
           </Section>
         </ScrollView>
 
@@ -411,15 +499,36 @@ const styles = StyleSheet.create({
   autoBtnText: { fontSize: 13 },
 
   imagePicker: {
-    borderRadius: 12, borderWidth: 1.5, borderStyle: "dashed",
-    padding: 20, alignItems: "center", gap: 8,
+    borderRadius: 14, borderWidth: 1.5, borderStyle: "dashed",
+    paddingVertical: 28, paddingHorizontal: 20,
+    alignItems: "center", gap: 10,
   },
   imageIconBox: {
-    width: 60, height: 60, borderRadius: 14,
+    width: 64, height: 64, borderRadius: 16,
     alignItems: "center", justifyContent: "center",
   },
-  imagePickerText: { fontSize: 14 },
+  imagePickerText: { fontSize: 15 },
   imagePickerSub:  { fontSize: 12 },
+
+  cameraBtn: {
+    flexDirection: "row", alignItems: "center", justifyContent: "center",
+    gap: 8, paddingVertical: 12, borderRadius: 10, borderWidth: 1,
+  },
+  cameraBtnText: { fontSize: 13 },
+
+  imagePreviewWrap: { gap: 10 },
+  imagePreview: {
+    width: "100%", height: 220, borderRadius: 12,
+  },
+  imageActions: {
+    flexDirection: "row", gap: 8,
+  },
+  imageActionBtn: {
+    flexDirection: "row", alignItems: "center", justifyContent: "center",
+    gap: 6, paddingVertical: 11, paddingHorizontal: 14,
+    borderRadius: 10, borderWidth: 1,
+  },
+  imageActionText: { fontSize: 13 },
 
   bottomBar: {
     flexDirection: "row", gap: 8, padding: 12, paddingTop: 10,
