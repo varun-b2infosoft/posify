@@ -30,18 +30,25 @@ export interface PaymentResult {
   walletAdded:   number;
 }
 
+export interface DeliveryCheckoutParams {
+  customer: { id?: string; name: string; phone: string; address?: string };
+  amountReceived: number;
+}
+
 interface Props {
-  visible:   boolean;
-  total:     number;
-  onClose:   () => void;
-  onSuccess: (result: PaymentResult) => void;
+  visible:     boolean;
+  total:       number;
+  onClose:     () => void;
+  onSuccess:   (result: PaymentResult) => void;
+  onDelivery?: (params: DeliveryCheckoutParams) => void;
+  isEditMode?: boolean;
 }
 
 const ACCENT_COLORS = ["#4F46E5","#10B981","#F59E0B","#EC4899","#8B5CF6","#EF4444","#06B6D4","#6366F1"];
 function initials(name: string) { return name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase(); }
 function accentOf(name: string) { return ACCENT_COLORS[name.charCodeAt(0) % ACCENT_COLORS.length]; }
 
-export function PaymentModal({ visible, total, onClose, onSuccess }: Props) {
+export function PaymentModal({ visible, total, onClose, onSuccess, onDelivery, isEditMode }: Props) {
   const colors      = useColors();
   const slideAnim   = useRef(new Animated.Value(520)).current;
   const overlayAnim = useRef(new Animated.Value(0)).current;
@@ -51,6 +58,9 @@ export function PaymentModal({ visible, total, onClose, onSuccess }: Props) {
 
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [useWallet,        setUseWallet]         = useState(true);
+
+  const [isDelivery,     setIsDelivery]     = useState(false);
+  const [deliveryAddress,setDeliveryAddress] = useState("");
 
   const [pickerVisible, setPickerVisible] = useState(false);
   const [customers,     setCustomers]     = useState<Customer[]>(() => getCustomers());
@@ -68,6 +78,8 @@ export function PaymentModal({ visible, total, onClose, onSuccess }: Props) {
       setMethod("cash");
       setSelectedCustomer(null);
       setUseWallet(true);
+      setIsDelivery(false);
+      setDeliveryAddress("");
       Animated.parallel([
         Animated.spring(slideAnim,   { toValue: 0,   tension: 65, friction: 11, useNativeDriver: true }),
         Animated.timing(overlayAnim, { toValue: 1,   duration: 200, useNativeDriver: true }),
@@ -81,15 +93,17 @@ export function PaymentModal({ visible, total, onClose, onSuccess }: Props) {
   }, [visible]);
 
   const walletBalance = selectedCustomer?.walletBalance ?? 0;
-  const walletApplied = (useWallet && walletBalance > 0) ? Math.min(walletBalance, total) : 0;
+  const walletApplied = (!isDelivery && useWallet && walletBalance > 0) ? Math.min(walletBalance, total) : 0;
   const netPayable    = total - walletApplied;
   const amountPaid    = Math.max(0, parseInt(amountInput || "0", 10));
   const balance       = amountPaid - netPayable;
   const dueAmount     = balance < 0 ? -balance : 0;
   const walletAdded   = balance > 0 ? balance  : 0;
   const isPaid        = balance === 0 && amountPaid > 0;
-  const needsCustomer = dueAmount > 0 || walletAdded > 0 || walletApplied > 0;
-  const canPay        = amountPaid > 0 && (!needsCustomer || selectedCustomer !== null);
+  const needsCustomer = isDelivery || dueAmount > 0 || walletAdded > 0 || walletApplied > 0;
+  const canPay        = isDelivery
+    ? selectedCustomer !== null
+    : amountPaid > 0 && (!needsCustomer || selectedCustomer !== null);
 
   const QUICK_AMOUNTS = [...new Set([
     netPayable,
@@ -106,6 +120,18 @@ export function PaymentModal({ visible, total, onClose, onSuccess }: Props) {
   const handleConfirm = () => {
     if (!canPay) return;
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    if (isDelivery && onDelivery && selectedCustomer) {
+      onDelivery({
+        customer: {
+          id:      selectedCustomer.id,
+          name:    selectedCustomer.name,
+          phone:   selectedCustomer.phone,
+          address: deliveryAddress.trim() || undefined,
+        },
+        amountReceived: amountPaid,
+      });
+      return;
+    }
     onSuccess({
       method,
       customerId:    selectedCustomer?.id   ?? null,
@@ -143,7 +169,9 @@ export function PaymentModal({ visible, total, onClose, onSuccess }: Props) {
     c.phone.includes(cSearch)
   );
 
-  const btnLabel = dueAmount > 0
+  const btnLabel = isDelivery
+    ? `Save as Delivery Order`
+    : dueAmount > 0
     ? `Confirm · ₹${dueAmount.toLocaleString()} Udhaar`
     : walletAdded > 0
     ? `Confirm · +₹${walletAdded.toLocaleString()} Wallet`
@@ -178,11 +206,44 @@ export function PaymentModal({ visible, total, onClose, onSuccess }: Props) {
                 <Text style={[styles.totalAmt,   { fontFamily: "Inter_700Bold"   }]}>₹{total.toLocaleString()}</Text>
               </View>
 
+              {/* ── Delivery Toggle ── */}
+              {onDelivery && !isEditMode && (
+                <TouchableOpacity
+                  style={[
+                    styles.deliveryToggle,
+                    {
+                      backgroundColor: isDelivery ? "#4F46E512" : colors.secondary,
+                      borderColor:     isDelivery ? "#4F46E540" : colors.border,
+                    },
+                  ]}
+                  onPress={() => { setIsDelivery(v => !v); setAmountInput(""); }}
+                  activeOpacity={0.8}
+                >
+                  <View style={[styles.deliveryCheckbox, { backgroundColor: isDelivery ? "#4F46E5" : colors.border }]}>
+                    {isDelivery && <Feather name="check" size={11} color="#fff" />}
+                  </View>
+                  <Feather name="truck" size={15} color={isDelivery ? "#4F46E5" : colors.mutedForeground} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.deliveryToggleTitle, { color: isDelivery ? "#4F46E5" : colors.foreground, fontFamily: "Inter_600SemiBold" }]}>
+                      Mark as Delivery Order
+                    </Text>
+                    <Text style={[styles.deliveryToggleSub, { color: colors.mutedForeground, fontFamily: "Inter_400Regular" }]}>
+                      Save order for delivery · collect payment later
+                    </Text>
+                  </View>
+                  {isDelivery && (
+                    <View style={[styles.deliveryActivePill, { backgroundColor: "#4F46E5" }]}>
+                      <Text style={[styles.deliveryActivePillText, { fontFamily: "Inter_700Bold" }]}>ON</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              )}
+
               {/* ── Customer Section ── */}
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
                   <Text style={[styles.sectionLabel, { color: colors.mutedForeground, fontFamily: "Inter_500Medium" }]}>
-                    Customer
+                    Customer{isDelivery ? " (Required)" : ""}
                   </Text>
                   {needsCustomer && !selectedCustomer && (
                     <View style={[styles.reqBadge, { backgroundColor: "#EF444415" }]}>
@@ -257,13 +318,30 @@ export function PaymentModal({ visible, total, onClose, onSuccess }: Props) {
                     </Text>
                   </View>
                 )}
+
+                {/* Delivery address field */}
+                {isDelivery && selectedCustomer && (
+                  <View style={[styles.addressField, { backgroundColor: colors.background, borderColor: colors.border }]}>
+                    <Feather name="map-pin" size={14} color={colors.mutedForeground} />
+                    <TextInput
+                      style={[styles.addressInput, { color: colors.foreground, fontFamily: "Inter_400Regular" }]}
+                      value={deliveryAddress}
+                      onChangeText={setDeliveryAddress}
+                      placeholder="Delivery address (optional)"
+                      placeholderTextColor={colors.mutedForeground}
+                      multiline
+                    />
+                  </View>
+                )}
               </View>
 
               {/* ── Payment Method ── */}
+              {!isDelivery && (
               <Text style={[styles.sectionLabel, { color: colors.mutedForeground, fontFamily: "Inter_500Medium", marginHorizontal: 16, marginBottom: 8 }]}>
                 Payment Method
               </Text>
-              <View style={styles.methodRow}>
+              )}
+              {!isDelivery && (<View style={styles.methodRow}>
                 {([
                   { key: "cash" as PaymentMethod, icon: "dollar-sign", label: "Cash" },
                   { key: "upi"  as PaymentMethod, icon: "smartphone",  label: "UPI"  },
@@ -282,11 +360,12 @@ export function PaymentModal({ visible, total, onClose, onSuccess }: Props) {
                   </TouchableOpacity>
                 ))}
               </View>
+              )}
 
               {/* ── Amount Received ── */}
               <View style={styles.section}>
                 <Text style={[styles.sectionLabel, { color: colors.mutedForeground, fontFamily: "Inter_500Medium" }]}>
-                  Amount Received
+                  {isDelivery ? "Advance / Amount Received (Optional)" : "Amount Received"}
                 </Text>
                 <View style={[styles.amountWrap, { backgroundColor: colors.background, borderColor: isPaid ? "#10B981" : amountPaid > 0 && dueAmount > 0 ? "#EF4444" : colors.border }]}>
                   <Text style={[styles.rupee, { color: colors.foreground, fontFamily: "Inter_600SemiBold" }]}>₹</Text>
@@ -351,12 +430,12 @@ export function PaymentModal({ visible, total, onClose, onSuccess }: Props) {
             </ScrollView>
 
             <TouchableOpacity
-              style={[styles.confirmBtn, { backgroundColor: canPay ? colors.primary : colors.border, marginHorizontal: 16, marginBottom: 16 }]}
+              style={[styles.confirmBtn, { backgroundColor: canPay ? (isDelivery ? "#4F46E5" : colors.primary) : colors.border, marginHorizontal: 16, marginBottom: 16 }]}
               onPress={handleConfirm}
               disabled={!canPay}
               activeOpacity={0.85}
             >
-              <Feather name="check-circle" size={20} color={canPay ? "#fff" : colors.mutedForeground} />
+              <Feather name={isDelivery ? "truck" : "check-circle"} size={20} color={canPay ? "#fff" : colors.mutedForeground} />
               <Text style={[styles.confirmText, { color: canPay ? "#fff" : colors.mutedForeground, fontFamily: "Inter_700Bold" }]}>
                 {btnLabel}
               </Text>
@@ -526,6 +605,22 @@ const styles = StyleSheet.create({
 
   confirmBtn:  { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, borderRadius: 14, paddingVertical: 17 },
   confirmText: { fontSize: 16 },
+
+  deliveryToggle: {
+    flexDirection: "row", alignItems: "center", gap: 10,
+    marginHorizontal: 16, marginBottom: 12, borderRadius: 12, borderWidth: 1.5, padding: 12,
+  },
+  deliveryCheckbox: { width: 18, height: 18, borderRadius: 5, alignItems: "center", justifyContent: "center" },
+  deliveryToggleTitle: { fontSize: 14 },
+  deliveryToggleSub:   { fontSize: 11, marginTop: 1 },
+  deliveryActivePill:  { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
+  deliveryActivePillText: { color: "#fff", fontSize: 10 },
+
+  addressField: {
+    flexDirection: "row", alignItems: "flex-start", gap: 8,
+    borderRadius: 10, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 10, marginTop: 8,
+  },
+  addressInput: { flex: 1, fontSize: 14, lineHeight: 20, minHeight: 38 },
 
   pickerOverlay: { flex: 1, justifyContent: "flex-end" },
   pickerSheet:   { borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingTop: 10, maxHeight: "88%", paddingBottom: 32 },
