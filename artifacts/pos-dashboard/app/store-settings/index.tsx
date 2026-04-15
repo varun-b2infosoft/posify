@@ -142,7 +142,7 @@ export default function StoreSettingsScreen() {
 
   // Receipt
   const [receiptHeader, setReceiptHeader] = useState("Thank you for shopping with us!");
-  const [receiptFooter, setReceiptFooter] = useState("Visit again · Powered by POSify");
+  const [receiptFooter, setReceiptFooter] = useState("Visit again · Powered by IPOS");
   const [showGst,       setShowGst]       = useState(true);
   const [showLogo,      setShowLogo]      = useState(true);
 
