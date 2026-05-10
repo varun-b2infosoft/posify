@@ -25,6 +25,8 @@ function RootLayoutNav() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="index"               options={{ headerShown: false }} />
+      <Stack.Screen name="auth/splash"         options={{ headerShown: false, animation: "fade" }} />
+      <Stack.Screen name="auth/onboarding"    options={{ headerShown: false, animation: "fade" }} />
       <Stack.Screen name="auth/welcome"        options={{ headerShown: false, animation: "fade" }} />
       <Stack.Screen name="auth/login"          options={{ headerShown: false, animation: "slide_from_right" }} />
       <Stack.Screen name="auth/register"       options={{ headerShown: false, animation: "slide_from_right" }} />
