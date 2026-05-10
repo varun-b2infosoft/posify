@@ -1,36 +1,134 @@
 import React, { useEffect, useRef } from "react";
-import {
-  Animated,
-  Dimensions,
-  Platform,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Animated, Dimensions, Platform, StyleSheet, Text, View } from "react-native";
 import { router } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 
 const { width: W, height: H } = Dimensions.get("window");
-const ND       = Platform.OS !== "web";
-const PRIMARY  = "#4F46E5";
-const LIGHT    = "#6366F1";
-const DURATION = 3000;
+const ND      = false; // always JS driver — web + consistent cross-platform
+const PRIMARY = "#4F46E5";
+const NAVIGATE_AT = 3600;
 
-/* ─── Floating particle ─────────────────────────── */
-const PARTICLES = [
-  { id: 0, x: 0.08, startY: 0.85, delay: 0,    size: 7,  op: 0.35 },
-  { id: 1, x: 0.22, startY: 0.75, delay: 350,  size: 11, op: 0.2  },
-  { id: 2, x: 0.82, startY: 0.8,  delay: 700,  size: 8,  op: 0.28 },
-  { id: 3, x: 0.68, startY: 0.9,  delay: 150,  size: 5,  op: 0.4  },
-  { id: 4, x: 0.45, startY: 0.7,  delay: 900,  size: 13, op: 0.15 },
-  { id: 5, x: 0.58, startY: 0.82, delay: 500,  size: 7,  op: 0.3  },
-  { id: 6, x: 0.33, startY: 0.78, delay: 1100, size: 9,  op: 0.22 },
-  { id: 7, x: 0.9,  startY: 0.88, delay: 250,  size: 6,  op: 0.3  },
-  { id: 8, x: 0.15, startY: 0.6,  delay: 800,  size: 5,  op: 0.25 },
-  { id: 9, x: 0.76, startY: 0.65, delay: 600,  size: 10, op: 0.18 },
+/* ─── Letter (spring-bounce in) ─── */
+function Letter({ char, delay }: { char: string; delay: number }) {
+  const opa = useRef(new Animated.Value(0)).current;
+  const ty  = useRef(new Animated.Value(32)).current;
+  const sc  = useRef(new Animated.Value(0.4)).current;
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      Animated.parallel([
+        Animated.spring(sc,  { toValue: 1,   tension: 220, friction: 9, useNativeDriver: ND }),
+        Animated.spring(ty,  { toValue: 0,   tension: 220, friction: 9, useNativeDriver: ND }),
+        Animated.timing(opa, { toValue: 1,   duration: 160,             useNativeDriver: ND }),
+      ]).start();
+    }, delay);
+    return () => clearTimeout(t);
+  }, [delay]);
+
+  return (
+    <Animated.Text style={[styles.letter, { opacity: opa, transform: [{ translateY: ty }, { scale: sc }] }]}>
+      {char}
+    </Animated.Text>
+  );
+}
+
+/* ─── Sparkle dot (burst from logo) ─── */
+const SPARKLE_DEFS = [
+  { angle: 270, dist: 82 }, // top
+  { angle: 30,  dist: 80 },
+  { angle: 150, dist: 80 },
+  { angle: 330, dist: 76 },
+  { angle: 210, dist: 76 },
+  { angle: 90,  dist: 78 }, // bottom
 ];
 
-function Particle({ x, startY, delay, size, op }: typeof PARTICLES[0]) {
+function Sparkle({ angle, dist, startDelay }: { angle: number; dist: number; startDelay: number }) {
+  const rad = (angle * Math.PI) / 180;
+  const tx  = useRef(new Animated.Value(0)).current;
+  const ty  = useRef(new Animated.Value(0)).current;
+  const opa = useRef(new Animated.Value(0)).current;
+  const sc  = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      Animated.parallel([
+        Animated.spring(tx,  { toValue: Math.cos(rad) * dist, tension: 120, friction: 10, useNativeDriver: ND }),
+        Animated.spring(ty,  { toValue: Math.sin(rad) * dist, tension: 120, friction: 10, useNativeDriver: ND }),
+        Animated.spring(sc,  { toValue: 1, tension: 260, friction: 8, useNativeDriver: ND }),
+        Animated.sequence([
+          Animated.timing(opa, { toValue: 1,   duration: 140, useNativeDriver: ND }),
+          Animated.timing(opa, { toValue: 0,   duration: 480, useNativeDriver: ND }),
+        ]),
+      ]).start();
+    }, startDelay);
+    return () => clearTimeout(t);
+  }, []);
+
+  return (
+    <Animated.View
+      style={{
+        position: "absolute",
+        width: 10, height: 10, borderRadius: 5,
+        backgroundColor: "rgba(255,255,255,0.9)",
+        opacity: opa,
+        transform: [{ translateX: tx }, { translateY: ty }, { scale: sc }],
+      }}
+    />
+  );
+}
+
+/* ─── Pulsing ring ─── */
+function Ring({ delay, size, speed = 2000 }: { delay: number; size: number; speed?: number }) {
+  const sc  = useRef(new Animated.Value(0.4)).current;
+  const opa = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const anim = Animated.loop(
+      Animated.sequence([
+        Animated.delay(delay),
+        Animated.parallel([
+          Animated.timing(sc,  { toValue: 2.6,  duration: speed, useNativeDriver: ND }),
+          Animated.sequence([
+            Animated.timing(opa, { toValue: 0.38, duration: speed * 0.18, useNativeDriver: ND }),
+            Animated.timing(opa, { toValue: 0,    duration: speed * 0.82, useNativeDriver: ND }),
+          ]),
+        ]),
+        Animated.timing(sc, { toValue: 0.4, duration: 0, useNativeDriver: ND }),
+      ])
+    );
+    anim.start();
+    return () => anim.stop();
+  }, []);
+
+  return (
+    <Animated.View
+      style={{
+        position: "absolute",
+        width: size, height: size, borderRadius: size / 2,
+        borderWidth: 1.5,
+        borderColor: "rgba(255,255,255,0.85)",
+        opacity: opa,
+        transform: [{ scale: sc }],
+      }}
+    />
+  );
+}
+
+/* ─── Floating particle ─── */
+const PARTICLES = [
+  { id: 0, x: 0.07,  delay: 0,    size: 6,  op: 0.4,  speed: 3000 },
+  { id: 1, x: 0.20,  delay: 400,  size: 10, op: 0.22, speed: 3400 },
+  { id: 2, x: 0.83,  delay: 750,  size: 8,  op: 0.3,  speed: 2800 },
+  { id: 3, x: 0.67,  delay: 160,  size: 5,  op: 0.45, speed: 2600 },
+  { id: 4, x: 0.44,  delay: 1000, size: 12, op: 0.16, speed: 3600 },
+  { id: 5, x: 0.57,  delay: 550,  size: 7,  op: 0.32, speed: 2900 },
+  { id: 6, x: 0.32,  delay: 1200, size: 9,  op: 0.24, speed: 3200 },
+  { id: 7, x: 0.91,  delay: 280,  size: 6,  op: 0.33, speed: 2700 },
+  { id: 8, x: 0.14,  delay: 850,  size: 5,  op: 0.28, speed: 3100 },
+  { id: 9, x: 0.75,  delay: 650,  size: 11, op: 0.18, speed: 3500 },
+];
+
+function Particle({ x, delay, size, op, speed }: typeof PARTICLES[0]) {
   const ty  = useRef(new Animated.Value(0)).current;
   const opa = useRef(new Animated.Value(0)).current;
 
@@ -39,10 +137,10 @@ function Particle({ x, startY, delay, size, op }: typeof PARTICLES[0]) {
       Animated.sequence([
         Animated.delay(delay),
         Animated.parallel([
-          Animated.timing(ty,  { toValue: -(H * 0.55), duration: 2800, useNativeDriver: ND }),
+          Animated.timing(ty,  { toValue: -(H * 0.6), duration: speed, useNativeDriver: ND }),
           Animated.sequence([
-            Animated.timing(opa, { toValue: op, duration: 700,  useNativeDriver: ND }),
-            Animated.timing(opa, { toValue: 0,  duration: 1400, delay: 400, useNativeDriver: ND }),
+            Animated.timing(opa, { toValue: op, duration: speed * 0.25, useNativeDriver: ND }),
+            Animated.timing(opa, { toValue: 0,  duration: speed * 0.45, delay: speed * 0.2, useNativeDriver: ND }),
           ]),
         ]),
         Animated.parallel([
@@ -58,70 +156,78 @@ function Particle({ x, startY, delay, size, op }: typeof PARTICLES[0]) {
   return (
     <Animated.View
       style={{
-        position:    "absolute",
-        left:        x * W,
-        top:         startY * H,
-        width:       size,
-        height:      size,
-        borderRadius:size / 2,
+        position: "absolute",
+        left: x * W, bottom: 0,
+        width: size, height: size, borderRadius: size / 2,
         backgroundColor: "#fff",
-        opacity:     opa,
-        transform:   [{ translateY: ty }],
+        opacity: opa, transform: [{ translateY: ty }],
       }}
     />
   );
 }
 
-/* ─── Pulsing ring ───────────────────────────────── */
-function Ring({ delay, size }: { delay: number; size: number }) {
-  const sc  = useRef(new Animated.Value(0.5)).current;
+/* ─── Shimmer stripe on icon ─── */
+function Shimmer() {
+  const x = useRef(new Animated.Value(-130)).current;
+
+  useEffect(() => {
+    const anim = Animated.loop(
+      Animated.sequence([
+        Animated.delay(600),
+        Animated.timing(x, { toValue: 150, duration: 550, useNativeDriver: ND }),
+        Animated.timing(x, { toValue: -130, duration: 0,  useNativeDriver: ND }),
+        Animated.delay(1200),
+      ])
+    );
+    anim.start();
+    return () => anim.stop();
+  }, []);
+
+  return (
+    <Animated.View
+      style={{
+        position: "absolute", top: 0, bottom: 0, width: 55,
+        backgroundColor: "rgba(255,255,255,0.22)",
+        transform: [{ translateX: x }, { skewX: "-22deg" }],
+        borderRadius: 2,
+      }}
+    />
+  );
+}
+
+/* ─── Animated chip ─── */
+function Chip({ label, delay }: { label: string; delay: number }) {
+  const sc  = useRef(new Animated.Value(0)).current;
   const opa = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    const anim = Animated.loop(
-      Animated.sequence([
-        Animated.delay(delay),
-        Animated.parallel([
-          Animated.timing(sc,  { toValue: 2.2, duration: 2000, useNativeDriver: ND }),
-          Animated.sequence([
-            Animated.timing(opa, { toValue: 0.3, duration: 300,  useNativeDriver: ND }),
-            Animated.timing(opa, { toValue: 0,   duration: 1700, useNativeDriver: ND }),
-          ]),
-        ]),
-        Animated.timing(sc, { toValue: 0.5, duration: 0, useNativeDriver: ND }),
-      ])
-    );
-    anim.start();
-    return () => anim.stop();
-  }, []);
+    const t = setTimeout(() => {
+      Animated.parallel([
+        Animated.spring(sc,  { toValue: 1, tension: 240, friction: 11, useNativeDriver: ND }),
+        Animated.timing(opa, { toValue: 1, duration: 200,               useNativeDriver: ND }),
+      ]).start();
+    }, delay);
+    return () => clearTimeout(t);
+  }, [delay]);
 
   return (
-    <Animated.View
-      style={{
-        position:    "absolute",
-        width:       size,
-        height:      size,
-        borderRadius:size / 2,
-        borderWidth: 1.5,
-        borderColor: "rgba(255,255,255,0.9)",
-        opacity:     opa,
-        transform:   [{ scale: sc }],
-      }}
-    />
+    <Animated.View style={[styles.chip, { opacity: opa, transform: [{ scale: sc }] }]}>
+      <Text style={styles.chipText}>{label}</Text>
+    </Animated.View>
   );
 }
 
-/* ─── Shimmer stripe ─────────────────────────────── */
-function Shimmer() {
-  const x = useRef(new Animated.Value(-120)).current;
+/* ─── Progress bar shine ─── */
+function BarShine({ trackW }: { trackW: Animated.Value }) {
+  const shineX = useRef(new Animated.Value(-40)).current;
 
   useEffect(() => {
     const anim = Animated.loop(
       Animated.sequence([
-        Animated.delay(900),
-        Animated.timing(x, { toValue: 140, duration: 700, useNativeDriver: ND }),
-        Animated.timing(x, { toValue: -120, duration: 0,  useNativeDriver: ND }),
-        Animated.delay(1600),
+        Animated.delay(800),
+        Animated.timing(shineX, { toValue: W, duration: 900, useNativeDriver: ND }),
+        Animated.timing(shineX, { toValue: -40, duration: 0, useNativeDriver: ND }),
+        Animated.delay(600),
       ])
     );
     anim.start();
@@ -129,71 +235,92 @@ function Shimmer() {
   }, []);
 
   return (
-    <Animated.View
-      style={{
-        position:        "absolute",
-        top:             0,
-        bottom:          0,
-        width:           60,
-        backgroundColor: "rgba(255,255,255,0.18)",
-        transform:       [{ translateX: x }, { skewX: "-20deg" }],
-        borderRadius:    4,
-      }}
-    />
+    <Animated.View style={[styles.progressTrack, { width: W - 80 }]}>
+      <Animated.View style={[styles.progressFill, { width: trackW }]}>
+        <Animated.View
+          style={{
+            position: "absolute", top: 0, bottom: 0, width: 36,
+            backgroundColor: "rgba(255,255,255,0.45)",
+            transform: [{ translateX: shineX }, { skewX: "-20deg" }],
+            borderRadius: 2,
+          }}
+        />
+      </Animated.View>
+    </Animated.View>
   );
 }
 
-/* ─── Main splash ────────────────────────────────── */
+/* ═══ MAIN SPLASH ════════════════════════════════════ */
+const LETTERS = ["I", "P", "O", "S"];
+const CHIPS   = ["Billing", "Analytics", "CRM", "Inventory"];
+
 export default function SplashScreen() {
-  const logoSc   = useRef(new Animated.Value(0.2)).current;
+  /* Logo */
+  const logoSc   = useRef(new Animated.Value(0.3)).current;
   const logoOpa  = useRef(new Animated.Value(0)).current;
-  const glowSc   = useRef(new Animated.Value(0.6)).current;
+  const logoRot  = useRef(new Animated.Value(-8)).current;
+  /* Glow burst */
+  const glowSc   = useRef(new Animated.Value(0.5)).current;
   const glowOpa  = useRef(new Animated.Value(0)).current;
-  const nameOpa  = useRef(new Animated.Value(0)).current;
-  const nameY    = useRef(new Animated.Value(24)).current;
+  /* Tagline */
   const tagOpa   = useRef(new Animated.Value(0)).current;
-  const barW     = useRef(new Animated.Value(0)).current;
+  const tagY     = useRef(new Animated.Value(20)).current;
+  /* Footer */
   const footerOpa= useRef(new Animated.Value(0)).current;
+  /* Progress */
+  const barW     = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.sequence([
-      /* 1. Logo bounces in */
-      Animated.parallel([
-        Animated.spring(logoSc,  { toValue: 1, tension: 55, friction: 6, useNativeDriver: ND }),
-        Animated.timing(logoOpa, { toValue: 1, duration: 400,            useNativeDriver: ND }),
-      ]),
-      /* 2. Glow burst */
-      Animated.parallel([
-        Animated.timing(glowOpa, { toValue: 0.45, duration: 220, useNativeDriver: ND }),
-        Animated.timing(glowSc,  { toValue: 1.8,  duration: 220, useNativeDriver: ND }),
-      ]),
-      Animated.parallel([
-        Animated.timing(glowOpa, { toValue: 0, duration: 300, useNativeDriver: ND }),
-        /* 3. Name slides up while glow fades */
-        Animated.timing(nameY,   { toValue: 0, duration: 300, useNativeDriver: ND }),
-        Animated.timing(nameOpa, { toValue: 1, duration: 300, useNativeDriver: ND }),
-      ]),
-      /* 4. Tagline */
-      Animated.timing(tagOpa, { toValue: 1, duration: 350, useNativeDriver: ND }),
-      /* 5. Footer */
-      Animated.timing(footerOpa, { toValue: 1, duration: 300, useNativeDriver: ND }),
+    /* ① Logo springs in immediately (with slight rotation unwinding) */
+    Animated.parallel([
+      Animated.spring(logoSc,  { toValue: 1,  tension: 65, friction: 5.5, useNativeDriver: ND }),
+      Animated.timing(logoOpa, { toValue: 1,  duration: 320,              useNativeDriver: ND }),
+      Animated.spring(logoRot, { toValue: 0,  tension: 65, friction: 5.5, useNativeDriver: ND }),
     ]).start();
 
-    /* Progress bar fills across full duration */
+    /* ② Glow burst at 440ms */
+    const t1 = setTimeout(() => {
+      Animated.sequence([
+        Animated.parallel([
+          Animated.timing(glowOpa, { toValue: 0.55, duration: 170, useNativeDriver: ND }),
+          Animated.timing(glowSc,  { toValue: 2.2,  duration: 170, useNativeDriver: ND }),
+        ]),
+        Animated.parallel([
+          Animated.timing(glowOpa, { toValue: 0, duration: 280, useNativeDriver: ND }),
+        ]),
+      ]).start();
+    }, 440);
+
+    /* ③ Tagline at 1020ms */
+    const t2 = setTimeout(() => {
+      Animated.parallel([
+        Animated.timing(tagOpa, { toValue: 1, duration: 380, useNativeDriver: ND }),
+        Animated.spring(tagY,   { toValue: 0, tension: 100, friction: 14, useNativeDriver: ND }),
+      ]).start();
+    }, 1020);
+
+    /* ④ Footer at 1500ms */
+    const t3 = setTimeout(() => {
+      Animated.timing(footerOpa, { toValue: 1, duration: 350, useNativeDriver: ND }).start();
+    }, 1500);
+
+    /* ⑤ Progress bar fills across full duration */
     Animated.timing(barW, {
       toValue:  W - 80,
-      duration: DURATION - 300,
-      delay:    300,
-      useNativeDriver: false,
+      duration: NAVIGATE_AT - 500,
+      delay:    500,
+      useNativeDriver: false, // width
     }).start();
 
-    const t = setTimeout(() => router.replace("/auth/onboarding" as any), DURATION);
-    return () => clearTimeout(t);
+    /* ⑥ Navigate */
+    const t4 = setTimeout(() => router.replace("/auth/onboarding" as any), NAVIGATE_AT);
+
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); };
   }, []);
 
   return (
     <View style={styles.root}>
-      {/* Background decoration blobs */}
+      {/* Background depth blobs */}
       <View style={[styles.blob, styles.blobTL]} />
       <View style={[styles.blob, styles.blobBR]} />
       <View style={[styles.blobSm, styles.blobTR]} />
@@ -202,21 +329,27 @@ export default function SplashScreen() {
       {/* Floating particles */}
       {PARTICLES.map(p => <Particle key={p.id} {...p} />)}
 
-      {/* Center stage */}
+      {/* ── Center stage ── */}
       <View style={styles.stage}>
-        {/* Rings */}
-        <Ring delay={0}    size={160} />
-        <Ring delay={700}  size={160} />
-        <Ring delay={1400} size={160} />
+        {/* Pulsing rings (staggered start) */}
+        <Ring delay={0}    size={160} speed={2200} />
+        <Ring delay={730}  size={160} speed={2200} />
+        <Ring delay={1460} size={160} speed={2200} />
 
         {/* Glow burst */}
-        <Animated.View
-          style={[styles.glow, { opacity: glowOpa, transform: [{ scale: glowSc }] }]}
-        />
+        <Animated.View style={[styles.glow, { opacity: glowOpa, transform: [{ scale: glowSc }] }]} />
 
-        {/* Icon box */}
+        {/* Sparkles burst after logo lands */}
+        {SPARKLE_DEFS.map((s, i) => (
+          <Sparkle key={i} {...s} startDelay={460 + i * 30} />
+        ))}
+
+        {/* Logo icon */}
         <Animated.View
-          style={[styles.iconWrap, { opacity: logoOpa, transform: [{ scale: logoSc }] }]}
+          style={[
+            styles.iconWrap,
+            { opacity: logoOpa, transform: [{ scale: logoSc }, { rotate: logoRot.interpolate({ inputRange: [-8, 0], outputRange: ["-8deg", "0deg"] }) }] },
+          ]}
         >
           <View style={styles.iconBox}>
             <Feather name="shopping-bag" size={52} color="#fff" />
@@ -224,33 +357,29 @@ export default function SplashScreen() {
           </View>
         </Animated.View>
 
-        {/* App name */}
-        <Animated.Text
-          style={[styles.appName, { opacity: nameOpa, transform: [{ translateY: nameY }] }]}
-        >
-          IPOS
-        </Animated.Text>
+        {/* "IPOS" — one letter at a time */}
+        <View style={styles.nameRow}>
+          {LETTERS.map((ch, i) => (
+            <Letter key={ch} char={ch} delay={580 + i * 95} />
+          ))}
+        </View>
 
         {/* Tagline */}
-        <Animated.Text style={[styles.tagline, { opacity: tagOpa }]}>
+        <Animated.Text style={[styles.tagline, { opacity: tagOpa, transform: [{ translateY: tagY }] }]}>
           Smart POS for Growing Businesses
         </Animated.Text>
 
         {/* Feature chips */}
-        <Animated.View style={[styles.chips, { opacity: tagOpa }]}>
-          {["Billing", "Analytics", "CRM", "Inventory"].map(f => (
-            <View key={f} style={styles.chip}>
-              <Text style={styles.chipText}>{f}</Text>
-            </View>
+        <View style={styles.chips}>
+          {CHIPS.map((label, i) => (
+            <Chip key={label} label={label} delay={1260 + i * 90} />
           ))}
-        </Animated.View>
+        </View>
       </View>
 
-      {/* Footer — progress bar + version */}
+      {/* Footer — progress bar */}
       <Animated.View style={[styles.footer, { opacity: footerOpa }]}>
-        <View style={styles.progressTrack}>
-          <Animated.View style={[styles.progressFill, { width: barW }]} />
-        </View>
+        <BarShine trackW={barW} />
         <Text style={styles.version}>v1.0.0</Text>
       </Animated.View>
     </View>
@@ -258,36 +387,32 @@ export default function SplashScreen() {
 }
 
 const styles = StyleSheet.create({
-  root:         { flex: 1, backgroundColor: PRIMARY, alignItems: "center", justifyContent: "space-between", paddingTop: Platform.OS === "web" ? 72 : 96, paddingBottom: 44, overflow: "hidden" },
+  root:     { flex: 1, backgroundColor: PRIMARY, alignItems: "center", justifyContent: "space-between", paddingTop: Platform.OS === "web" ? 68 : 92, paddingBottom: 44, overflow: "hidden" },
 
-  /* Blobs */
-  blob:         { position: "absolute", width: 300, height: 300, borderRadius: 150, backgroundColor: LIGHT, opacity: 0.25 },
-  blobTL:       { top: -120, left: -120 },
-  blobBR:       { bottom: -120, right: -120 },
-  blobSm:       { position: "absolute", width: 180, height: 180, borderRadius: 90, backgroundColor: "#818CF8", opacity: 0.18 },
-  blobTR:       { top: 40,  right: -60 },
-  blobBL:       { bottom: 80, left: -50 },
+  blob:     { position: "absolute", width: 320, height: 320, borderRadius: 160, backgroundColor: "#6366F1", opacity: 0.28 },
+  blobTL:   { top: -130, left: -130 },
+  blobBR:   { bottom: -130, right: -130 },
+  blobSm:   { position: "absolute", width: 200, height: 200, borderRadius: 100, backgroundColor: "#818CF8", opacity: 0.2 },
+  blobTR:   { top: 30,  right: -70 },
+  blobBL:   { bottom: 70, left: -55 },
 
-  /* Stage */
-  stage:        { alignItems: "center", gap: 18 },
-  glow:         { position: "absolute", width: 180, height: 180, borderRadius: 90, backgroundColor: "#fff" },
+  stage:    { alignItems: "center", gap: 20 },
+  glow:     { position: "absolute", width: 200, height: 200, borderRadius: 100, backgroundColor: "#fff" },
 
-  /* Icon */
-  iconWrap:     { alignItems: "center", justifyContent: "center" },
-  iconBox:      { width: 120, height: 120, borderRadius: 36, backgroundColor: "rgba(255,255,255,0.18)", alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: "rgba(255,255,255,0.4)", overflow: "hidden" },
+  iconWrap: { alignItems: "center", justifyContent: "center" },
+  iconBox:  { width: 124, height: 124, borderRadius: 38, backgroundColor: "rgba(255,255,255,0.18)", alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: "rgba(255,255,255,0.42)", overflow: "hidden" },
 
-  /* Text */
-  appName:      { fontSize: 52, color: "#fff", fontWeight: "900", letterSpacing: 4 },
-  tagline:      { fontSize: 15, color: "rgba(255,255,255,0.82)", textAlign: "center", paddingHorizontal: 32, lineHeight: 22 },
+  nameRow:  { flexDirection: "row", gap: 2, marginTop: 4 },
+  letter:   { fontSize: 54, color: "#fff", fontWeight: "900", letterSpacing: 2 },
 
-  /* Chips */
-  chips:        { flexDirection: "row", flexWrap: "wrap", gap: 8, justifyContent: "center", marginTop: 4 },
-  chip:         { backgroundColor: "rgba(255,255,255,0.15)", paddingHorizontal: 14, paddingVertical: 5, borderRadius: 20, borderWidth: 1, borderColor: "rgba(255,255,255,0.25)" },
-  chipText:     { color: "rgba(255,255,255,0.9)", fontSize: 12, fontWeight: "600" },
+  tagline:  { fontSize: 15, color: "rgba(255,255,255,0.82)", textAlign: "center", paddingHorizontal: 36, lineHeight: 23 },
 
-  /* Footer */
+  chips:    { flexDirection: "row", flexWrap: "wrap", gap: 8, justifyContent: "center", marginTop: 2 },
+  chip:     { backgroundColor: "rgba(255,255,255,0.14)", paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20, borderWidth: 1, borderColor: "rgba(255,255,255,0.26)" },
+  chipText: { color: "rgba(255,255,255,0.9)", fontSize: 12, fontWeight: "600" },
+
   footer:       { alignItems: "center", gap: 14, width: "100%" },
-  progressTrack:{ width: W - 80, height: 3, backgroundColor: "rgba(255,255,255,0.2)", borderRadius: 2, overflow: "hidden" },
-  progressFill: { height: 3, backgroundColor: "#fff", borderRadius: 2 },
-  version:      { fontSize: 12, color: "rgba(255,255,255,0.45)" },
+  progressTrack:{ height: 3, backgroundColor: "rgba(255,255,255,0.18)", borderRadius: 2, overflow: "hidden" },
+  progressFill: { height: 3, backgroundColor: "#fff", borderRadius: 2, overflow: "hidden" },
+  version:      { fontSize: 12, color: "rgba(255,255,255,0.4)" },
 });
