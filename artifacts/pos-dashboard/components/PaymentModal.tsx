@@ -383,43 +383,58 @@ export function PaymentModal({ visible, total, onClose, onSuccess, onDelivery, i
             <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
 
             <View style={[d.dialog, { backgroundColor: colors.card }]}>
-              {/* Header */}
-              <View style={d.dialogHeader}>
-                <View style={[d.headerIcon, { backgroundColor: colors.primary + "15" }]}>
-                  <Feather name="credit-card" size={20} color={colors.primary} />
+
+              {/* ── Header ── */}
+              <View style={[d.header, { borderBottomColor: colors.border }]}>
+                <View style={[d.headerIconWrap, { backgroundColor: colors.primary + "15" }]}>
+                  <Feather name="credit-card" size={19} color={colors.primary} />
                 </View>
-                <Text style={[d.dialogTitle, { color: colors.foreground, fontFamily: "Inter_700Bold" }]}>Checkout</Text>
+                <Text style={[d.headerTitle, { color: colors.foreground, fontFamily: "Inter_700Bold" }]}>Checkout</Text>
+                <View style={[d.headerTotalChip, { backgroundColor: colors.primary }]}>
+                  <Feather name="shopping-bag" size={13} color="rgba(255,255,255,0.85)" />
+                  <Text style={[d.headerTotalText, { fontFamily: "Inter_700Bold" }]}>₹{total.toLocaleString()}</Text>
+                </View>
                 <View style={{ flex: 1 }} />
-                <TouchableOpacity onPress={onClose} style={[d.closeBtn, { backgroundColor: colors.muted }]}>
+                <TouchableOpacity onPress={onClose} style={[d.closeBtn, { backgroundColor: colors.secondary }]}>
                   <Feather name="x" size={18} color={colors.mutedForeground} />
                 </TouchableOpacity>
               </View>
-              <View style={[d.sep, { backgroundColor: colors.border }]} />
 
-              {/* Two-column body */}
-              <View style={d.dialogBody}>
+              {/* ── Two-column body ── */}
+              <View style={d.body}>
 
-                {/* ── Left column: order info + customer ── */}
+                {/* Left column: order summary + customer */}
                 <ScrollView
                   style={d.leftCol}
                   showsVerticalScrollIndicator={false}
-                  contentContainerStyle={d.leftColContent}
+                  contentContainerStyle={d.leftPad}
+                  keyboardShouldPersistTaps="handled"
                 >
-                  {/* Bill Total */}
+                  {/* Bill total card */}
                   <View style={[d.totalCard, { backgroundColor: colors.primary }]}>
-                    <View>
+                    <View style={{ flex: 1 }}>
                       <Text style={[d.totalLabel, { fontFamily: "Inter_400Regular" }]}>Bill Total</Text>
-                      <Text style={[d.totalAmt,   { fontFamily: "Inter_700Bold"   }]}>₹{total.toLocaleString()}</Text>
+                      <Text style={[d.totalAmt, { fontFamily: "Inter_700Bold" }]}>₹{total.toLocaleString()}</Text>
                     </View>
-                    <View style={[d.totalBadge, { backgroundColor: "rgba(255,255,255,0.18)" }]}>
-                      <Feather name="shopping-bag" size={18} color="#fff" />
-                    </View>
+                    {walletApplied > 0 ? (
+                      <View style={d.totalRight}>
+                        <Text style={[d.totalWalletLabel, { fontFamily: "Inter_400Regular" }]}>After wallet</Text>
+                        <Text style={[d.totalNetAmt, { fontFamily: "Inter_700Bold" }]}>₹{netPayable.toLocaleString()}</Text>
+                      </View>
+                    ) : (
+                      <View style={[d.totalBadge, { backgroundColor: "rgba(255,255,255,0.18)" }]}>
+                        <Feather name="receipt" size={20} color="#fff" />
+                      </View>
+                    )}
                   </View>
 
-                  {/* Delivery Toggle */}
+                  {/* Delivery toggle */}
                   {onDelivery && !isEditMode && (
                     <TouchableOpacity
-                      style={[d.deliveryToggle, { backgroundColor: isDelivery ? "#4F46E50F" : colors.background, borderColor: isDelivery ? "#4F46E540" : colors.border }]}
+                      style={[d.deliveryToggle, {
+                        backgroundColor: isDelivery ? "#4F46E508" : colors.background,
+                        borderColor: isDelivery ? "#4F46E550" : colors.border,
+                      }]}
                       onPress={() => { setIsDelivery(v => !v); setAmountInput(""); }}
                       activeOpacity={0.8}
                     >
@@ -443,116 +458,134 @@ export function PaymentModal({ visible, total, onClose, onSuccess, onDelivery, i
                     </TouchableOpacity>
                   )}
 
-                  {/* Customer */}
-                  <Text style={[d.colSectionLabel, { color: colors.mutedForeground, fontFamily: "Inter_500Medium" }]}>
-                    Customer{isDelivery ? " (Required)" : " — optional"}
-                  </Text>
-                  {needsCustomer && !selectedCustomer && (
-                    <View style={[d.requiredBanner, { backgroundColor: "#EF44440C", borderColor: "#EF444430" }]}>
-                      <Feather name="alert-circle" size={13} color="#EF4444" />
-                      <Text style={{ color: "#EF4444", fontSize: 12, fontFamily: "Inter_500Medium", marginLeft: 6 }}>
-                        Customer required for this transaction
-                      </Text>
-                    </View>
-                  )}
+                  {/* Customer label */}
+                  <View style={d.sectionHeaderRow}>
+                    <Text style={[d.sectionLabel, { color: colors.mutedForeground, fontFamily: "Inter_600SemiBold" }]}>
+                      CUSTOMER{isDelivery ? " (REQUIRED)" : " — OPTIONAL"}
+                    </Text>
+                    {needsCustomer && !selectedCustomer && (
+                      <View style={[d.reqBadge, { backgroundColor: "#EF444415" }]}>
+                        <Feather name="alert-circle" size={10} color="#EF4444" />
+                        <Text style={{ color: "#EF4444", fontSize: 10, fontFamily: "Inter_600SemiBold" }}>Required</Text>
+                      </View>
+                    )}
+                  </View>
+
                   <CustomerSection compact />
                 </ScrollView>
 
-                {/* Column divider */}
-                <View style={[d.colDivider, { backgroundColor: colors.border }]} />
+                {/* Vertical divider */}
+                <View style={[d.divider, { backgroundColor: colors.border }]} />
 
-                {/* ── Right column: payment + confirm ── */}
-                <View style={d.rightCol}>
+                {/* Right column: payment + confirm */}
+                <View style={[d.rightCol, { backgroundColor: colors.secondary }]}>
+
+                  {/* Payment method */}
                   {!isDelivery && (
-                    <>
-                      <Text style={[d.colSectionLabel, { color: colors.mutedForeground, fontFamily: "Inter_500Medium" }]}>
-                        Payment Method
+                    <View style={d.rightSection}>
+                      <Text style={[d.sectionLabel, { color: colors.mutedForeground, fontFamily: "Inter_600SemiBold" }]}>
+                        PAYMENT METHOD
                       </Text>
                       <View style={d.methodRow}>
                         {PAYMENT_METHODS.map(m => (
                           <TouchableOpacity
                             key={m.key}
-                            style={[d.methodBtn, { backgroundColor: method === m.key ? colors.primary : colors.background, borderColor: method === m.key ? colors.primary : colors.border }]}
+                            style={[d.methodBtn, {
+                              backgroundColor: method === m.key ? colors.primary : colors.card,
+                              borderColor: method === m.key ? colors.primary : colors.border,
+                            }]}
                             onPress={() => handleMethodChange(m.key)}
                             activeOpacity={0.8}
                           >
-                            <Feather name={m.icon as any} size={18} color={method === m.key ? "#fff" : colors.mutedForeground} />
-                            <Text style={[d.methodLabel, { color: method === m.key ? "#fff" : colors.foreground, fontFamily: method === m.key ? "Inter_600SemiBold" : "Inter_400Regular" }]}>
+                            <Feather name={m.icon as any} size={17} color={method === m.key ? "#fff" : colors.mutedForeground} />
+                            <Text style={[d.methodLabel, { color: method === m.key ? "#fff" : colors.foreground, fontFamily: method === m.key ? "Inter_700Bold" : "Inter_400Regular" }]}>
                               {m.label}
                             </Text>
                           </TouchableOpacity>
                         ))}
                       </View>
-                    </>
-                  )}
-
-                  {/* Amount input */}
-                  <Text style={[d.colSectionLabel, { color: colors.mutedForeground, fontFamily: "Inter_500Medium", marginTop: isDelivery ? 0 : 16 }]}>
-                    {isDelivery ? "Advance / Amount Received (Optional)" : "Amount Received"}
-                  </Text>
-                  <View style={[d.amountWrap, { backgroundColor: colors.background, borderColor: isPaid ? "#10B981" : amountPaid > 0 && dueAmount > 0 ? "#EF4444" : colors.border }]}>
-                    <Text style={[d.rupee, { color: colors.foreground, fontFamily: "Inter_600SemiBold" }]}>₹</Text>
-                    <TextInput
-                      style={[d.amountInput, { color: colors.foreground, fontFamily: "Inter_700Bold" }]}
-                      keyboardType="numeric"
-                      value={amountInput}
-                      onChangeText={setAmountInput}
-                      placeholder={netPayable.toString()}
-                      placeholderTextColor={colors.mutedForeground}
-                      autoFocus={method === "cash"}
-                    />
-                    {amountPaid > 0 && (
-                      <TouchableOpacity onPress={() => setAmountInput("")} style={{ padding: 4 }}>
-                        <Feather name="x" size={15} color={colors.mutedForeground} />
-                      </TouchableOpacity>
-                    )}
-                  </View>
-
-                  {/* Quick amount grid */}
-                  <View style={d.quickGrid}>
-                    {QUICK_AMOUNTS.map(amt => (
-                      <TouchableOpacity
-                        key={amt}
-                        style={[d.quickBtn, { backgroundColor: colors.secondary, borderColor: colors.border }]}
-                        onPress={() => setAmountInput(amt.toString())}
-                      >
-                        <Text style={[d.quickText, { color: colors.primary, fontFamily: "Inter_600SemiBold" }]}>
-                          ₹{amt.toLocaleString()}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-
-                  {/* Balance result */}
-                  {amountPaid > 0 && (
-                    <View style={[d.balanceRow, { backgroundColor: isPaid ? "#10B98112" : dueAmount > 0 ? "#EF444410" : "#10B98112" }]}>
-                      <Feather
-                        name={isPaid ? "check-circle" : dueAmount > 0 ? "alert-circle" : "trending-up"}
-                        size={16}
-                        color={isPaid ? "#10B981" : dueAmount > 0 ? "#EF4444" : "#10B981"}
-                      />
-                      <Text style={[d.balanceLabel, { color: isPaid ? "#10B981" : dueAmount > 0 ? "#EF4444" : "#10B981", fontFamily: "Inter_600SemiBold" }]}>
-                        {isPaid ? "Paid in Full" : dueAmount > 0 ? "Due (Udhaar)" : "Extra → Wallet"}
-                      </Text>
-                      {!isPaid && (
-                        <Text style={[d.balanceAmt, { color: dueAmount > 0 ? "#EF4444" : "#10B981", fontFamily: "Inter_700Bold" }]}>
-                          ₹{(dueAmount > 0 ? dueAmount : walletAdded).toLocaleString()}
-                        </Text>
-                      )}
                     </View>
                   )}
 
+                  {/* Amount received */}
+                  <View style={d.rightSection}>
+                    <Text style={[d.sectionLabel, { color: colors.mutedForeground, fontFamily: "Inter_600SemiBold" }]}>
+                      {isDelivery ? "ADVANCE / AMOUNT RECEIVED (OPTIONAL)" : "AMOUNT RECEIVED"}
+                    </Text>
+                    <View style={[d.amountWrap, {
+                      backgroundColor: colors.card,
+                      borderColor: isPaid ? "#10B981" : amountPaid > 0 && dueAmount > 0 ? "#EF4444" : colors.border,
+                    }]}>
+                      <Text style={[d.rupee, { color: colors.mutedForeground, fontFamily: "Inter_500Medium" }]}>₹</Text>
+                      <TextInput
+                        style={[d.amountInput, { color: colors.foreground, fontFamily: "Inter_700Bold" }]}
+                        keyboardType="numeric"
+                        value={amountInput}
+                        onChangeText={setAmountInput}
+                        placeholder={netPayable.toString()}
+                        placeholderTextColor={colors.mutedForeground}
+                        autoFocus={method === "cash"}
+                      />
+                      {amountPaid > 0 && (
+                        <TouchableOpacity onPress={() => setAmountInput("")} style={d.clearInputBtn}>
+                          <Feather name="x-circle" size={16} color={colors.mutedForeground} />
+                        </TouchableOpacity>
+                      )}
+                    </View>
+
+                    {/* Quick amount chips */}
+                    <View style={d.quickRow}>
+                      {QUICK_AMOUNTS.map(amt => (
+                        <TouchableOpacity
+                          key={amt}
+                          style={[d.quickChip, { backgroundColor: colors.card, borderColor: colors.border }]}
+                          onPress={() => setAmountInput(amt.toString())}
+                        >
+                          <Text style={[d.quickChipText, { color: colors.primary, fontFamily: "Inter_600SemiBold" }]}>
+                            ₹{amt.toLocaleString()}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </View>
+
+                  {/* Balance indicator */}
+                  {amountPaid > 0 && (
+                    <View style={[d.balanceCard, {
+                      backgroundColor: isPaid ? "#10B98110" : dueAmount > 0 ? "#EF444410" : "#10B98110",
+                      borderColor: isPaid ? "#10B98130" : dueAmount > 0 ? "#EF444430" : "#10B98130",
+                    }]}>
+                      <Feather
+                        name={isPaid ? "check-circle" : dueAmount > 0 ? "alert-circle" : "trending-up"}
+                        size={18}
+                        color={isPaid ? "#10B981" : dueAmount > 0 ? "#EF4444" : "#10B981"}
+                      />
+                      <View style={{ flex: 1 }}>
+                        <Text style={[d.balanceLabel, { color: isPaid ? "#10B981" : dueAmount > 0 ? "#EF4444" : "#10B981", fontFamily: "Inter_600SemiBold" }]}>
+                          {isPaid ? "Paid in Full" : dueAmount > 0 ? "Due / Udhaar" : "Extra → Added to Wallet"}
+                        </Text>
+                        {!isPaid && (
+                          <Text style={[d.balanceAmt, { color: dueAmount > 0 ? "#EF4444" : "#10B981", fontFamily: "Inter_700Bold" }]}>
+                            ₹{(dueAmount > 0 ? dueAmount : walletAdded).toLocaleString()}
+                          </Text>
+                        )}
+                      </View>
+                    </View>
+                  )}
+
+                  {/* Customer warning */}
                   {needsCustomer && !selectedCustomer && amountPaid > 0 && (
-                    <View style={[d.warning, { backgroundColor: "#F59E0B12", borderColor: "#F59E0B40" }]}>
-                      <Feather name="alert-triangle" size={13} color="#F59E0B" />
+                    <View style={[d.warning, { backgroundColor: "#F59E0B10", borderColor: "#F59E0B40" }]}>
+                      <Feather name="alert-triangle" size={14} color="#F59E0B" />
                       <Text style={[d.warningText, { fontFamily: "Inter_400Regular" }]}>
-                        Customer required for credit or wallet transactions
+                        Select a customer for credit or wallet transactions
                       </Text>
                     </View>
                   )}
 
                   <View style={{ flex: 1 }} />
 
+                  {/* Confirm button */}
                   <TouchableOpacity
                     style={[d.confirmBtn, { backgroundColor: canPay ? (isDelivery ? "#4F46E5" : colors.primary) : colors.border }]}
                     onPress={handleConfirm}
@@ -575,19 +608,18 @@ export function PaymentModal({ visible, total, onClose, onSuccess, onDelivery, i
           <View style={d.overlay}>
             <Pressable style={StyleSheet.absoluteFill} onPress={() => setPickerVisible(false)} />
             <View style={[d.pickerDialog, { backgroundColor: colors.card }]}>
-              <View style={d.pickerHeader}>
-                <View style={[d.headerIcon, { backgroundColor: colors.primary + "12" }]}>
+              <View style={[d.header, { borderBottomColor: colors.border }]}>
+                <View style={[d.headerIconWrap, { backgroundColor: colors.primary + "12" }]}>
                   <Feather name="users" size={18} color={colors.primary} />
                 </View>
-                <Text style={[d.pickerTitle, { color: colors.foreground, fontFamily: "Inter_700Bold" }]}>
+                <Text style={[d.headerTitle, { color: colors.foreground, fontFamily: "Inter_700Bold" }]}>
                   Select Customer
                 </Text>
                 <View style={{ flex: 1 }} />
-                <TouchableOpacity onPress={() => setPickerVisible(false)} style={[d.closeBtn, { backgroundColor: colors.muted }]}>
+                <TouchableOpacity onPress={() => setPickerVisible(false)} style={[d.closeBtn, { backgroundColor: colors.secondary }]}>
                   <Feather name="x" size={16} color={colors.mutedForeground} />
                 </TouchableOpacity>
               </View>
-              <View style={[d.sep, { backgroundColor: colors.border }]} />
               <View style={{ flex: 1, paddingTop: 12 }}>
                 <CustomerPickerContent />
               </View>
@@ -780,124 +812,160 @@ export function PaymentModal({ visible, total, onClose, onSuccess, onDelivery, i
 const d = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: "rgba(0,0,0,0.55)",
     alignItems: "center",
     justifyContent: "center",
-    padding: 24,
+    padding: 28,
   },
+
   dialog: {
     width: "100%",
-    maxWidth: 800,
-    maxHeight: "90%",
+    maxWidth: 860,
+    maxHeight: "88%",
+    borderRadius: 20,
+    overflow: "hidden",
+    flexDirection: "column",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 16 },
+    shadowOpacity: 0.22,
+    shadowRadius: 36,
+    elevation: 20,
+  },
+
+  pickerDialog: {
+    width: "100%",
+    maxWidth: 480,
+    maxHeight: "82%",
     borderRadius: 20,
     overflow: "hidden",
     flexDirection: "column",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.2,
-    shadowRadius: 28,
-    elevation: 16,
+    shadowOpacity: 0.18,
+    shadowRadius: 26,
+    elevation: 14,
   },
-  dialogHeader: {
+
+  /* Header */
+  header: {
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
+    paddingHorizontal: 22,
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+  },
+  headerIconWrap: {
+    width: 38, height: 38, borderRadius: 11,
+    alignItems: "center", justifyContent: "center",
+  },
+  headerTitle:     { fontSize: 18 },
+  headerTotalChip: {
+    flexDirection: "row", alignItems: "center", gap: 6,
+    paddingHorizontal: 12, paddingVertical: 6,
+    borderRadius: 20, marginLeft: 4,
+  },
+  headerTotalText: { color: "#fff", fontSize: 15 },
+  closeBtn: {
+    width: 34, height: 34, borderRadius: 10,
+    alignItems: "center", justifyContent: "center",
+  },
+
+  /* Two-column body */
+  body: { flexDirection: "row", flex: 1, overflow: "hidden" },
+
+  /* Left column */
+  leftCol: { flex: 1 },
+  leftPad: { padding: 22, gap: 14 },
+
+  /* Total card */
+  totalCard: {
+    borderRadius: 16,
     paddingHorizontal: 20,
-    paddingVertical: 16,
-  },
-  headerIcon: {
-    width: 38,
-    height: 38,
-    borderRadius: 11,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  dialogTitle: { fontSize: 19 },
-  closeBtn:    { width: 32, height: 32, borderRadius: 16, alignItems: "center", justifyContent: "center" },
-  sep:         { height: 1 },
-
-  dialogBody: { flexDirection: "row", flex: 1 },
-
-  leftCol:        { flex: 1 },
-  leftColContent: { padding: 20, gap: 12 },
-
-  totalCard:  {
-    borderRadius: 14,
-    paddingHorizontal: 18,
-    paddingVertical: 16,
+    paddingVertical: 18,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
   },
-  totalLabel: { fontSize: 12, color: "rgba(255,255,255,0.82)", marginBottom: 4 },
-  totalAmt:   { fontSize: 28, color: "#fff" },
-  totalBadge: { width: 42, height: 42, borderRadius: 13, alignItems: "center", justifyContent: "center" },
+  totalLabel:       { fontSize: 12, color: "rgba(255,255,255,0.8)", marginBottom: 5 },
+  totalAmt:         { fontSize: 30, color: "#fff" },
+  totalBadge:       { width: 46, height: 46, borderRadius: 14, alignItems: "center", justifyContent: "center" },
+  totalRight:       { alignItems: "flex-end" },
+  totalWalletLabel: { fontSize: 11, color: "rgba(255,255,255,0.75)", marginBottom: 3 },
+  totalNetAmt:      { fontSize: 22, color: "#fff" },
 
+  /* Delivery toggle */
   deliveryToggle: {
     flexDirection: "row", alignItems: "center", gap: 10,
-    borderRadius: 12, borderWidth: 1.5, padding: 12,
+    borderRadius: 12, borderWidth: 1.5, padding: 13,
   },
   deliveryCheck: { width: 18, height: 18, borderRadius: 5, alignItems: "center", justifyContent: "center" },
   deliveryTitle: { fontSize: 13 },
-  deliverySub:   { fontSize: 11, marginTop: 1 },
+  deliverySub:   { fontSize: 11, marginTop: 2 },
   onPill:        { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
   onPillText:    { color: "#fff", fontSize: 10 },
 
-  colSectionLabel: { fontSize: 11, letterSpacing: 0.4, marginBottom: 8 },
-  requiredBanner: { flexDirection: "row", alignItems: "center", borderRadius: 8, borderWidth: 1, padding: 10 },
-
-  colDivider: { width: 1 },
-
-  rightCol: {
-    width: 340,
-    padding: 20,
-    flexDirection: "column",
-    gap: 0,
+  /* Section label */
+  sectionHeaderRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  sectionLabel:     { fontSize: 10, letterSpacing: 0.8, flex: 1 },
+  reqBadge: {
+    flexDirection: "row", alignItems: "center", gap: 4,
+    paddingHorizontal: 7, paddingVertical: 3, borderRadius: 6,
   },
 
-  methodRow: { flexDirection: "row", gap: 8, marginBottom: 0 },
-  methodBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingVertical: 11, borderRadius: 10, borderWidth: 1 },
+  /* Vertical divider */
+  divider: { width: 1 },
+
+  /* Right column */
+  rightCol: {
+    width: 360,
+    padding: 22,
+    flexDirection: "column",
+    gap: 18,
+  },
+  rightSection: { gap: 10 },
+
+  /* Payment method */
+  methodRow: { flexDirection: "row", gap: 8 },
+  methodBtn: {
+    flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center",
+    gap: 7, paddingVertical: 12, borderRadius: 11, borderWidth: 1,
+  },
   methodLabel: { fontSize: 13 },
 
-  amountWrap: { flexDirection: "row", alignItems: "center", borderRadius: 12, borderWidth: 1.5, paddingHorizontal: 14, paddingVertical: 4, marginBottom: 10 },
-  rupee:      { fontSize: 20, marginRight: 4 },
-  amountInput:{ flex: 1, fontSize: 26, paddingVertical: 8 },
+  /* Amount input */
+  amountWrap: {
+    flexDirection: "row", alignItems: "center",
+    borderRadius: 13, borderWidth: 2,
+    paddingHorizontal: 16, paddingVertical: 2,
+  },
+  rupee:         { fontSize: 18, marginRight: 4 },
+  amountInput:   { flex: 1, fontSize: 28, paddingVertical: 10 },
+  clearInputBtn: { padding: 5 },
 
-  quickGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 12 },
-  quickBtn:  { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 8, borderWidth: 1 },
-  quickText: { fontSize: 13 },
+  /* Quick amount chips */
+  quickRow:      { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  quickChip:     { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1 },
+  quickChipText: { fontSize: 13 },
 
-  balanceRow:   { flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10, marginBottom: 8 },
-  balanceLabel: { flex: 1, fontSize: 14 },
-  balanceAmt:   { fontSize: 17 },
+  /* Balance card */
+  balanceCard: {
+    flexDirection: "row", alignItems: "center", gap: 12,
+    borderRadius: 12, borderWidth: 1,
+    paddingHorizontal: 14, paddingVertical: 12,
+  },
+  balanceLabel: { fontSize: 13 },
+  balanceAmt:   { fontSize: 16, marginTop: 2 },
 
-  warning:     { flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 8, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 8, marginBottom: 8 },
+  /* Warning */
+  warning:     { flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 10, borderWidth: 1, paddingHorizontal: 13, paddingVertical: 10 },
   warningText: { flex: 1, fontSize: 12, color: "#92400E" },
 
-  confirmBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, borderRadius: 13, paddingVertical: 16 },
-  confirmText:{ fontSize: 15 },
-
-  pickerDialog: {
-    width: "100%",
-    maxWidth: 480,
-    maxHeight: "80%",
-    borderRadius: 20,
-    overflow: "hidden",
-    flexDirection: "column",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.18,
-    shadowRadius: 24,
-    elevation: 12,
+  /* Confirm */
+  confirmBtn: {
+    flexDirection: "row", alignItems: "center", justifyContent: "center",
+    gap: 10, borderRadius: 14, paddingVertical: 17,
   },
-  pickerHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-  },
-  pickerTitle: { fontSize: 17 },
+  confirmText: { fontSize: 16 },
 });
 
 /* ════════════════════════════════
