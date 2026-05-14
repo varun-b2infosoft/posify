@@ -46,6 +46,9 @@ import {
   DeliveryOrder as DeliveryOrderType,
 } from "@/store/deliveryOrders";
 import { DeliveryCheckoutParams } from "@/components/PaymentModal";
+import { getPosViewMode, setPosViewMode, subscribePosViewMode, loadPosViewMode } from "@/store/posLayout";
+import type { PosViewMode } from "@/store/posLayout";
+import { CompactGridTile, ListRow, SlimListRow, ViewModeBar } from "@/components/PosProductCards";
 
 interface StoreProduct {
   id: string;
@@ -351,6 +354,7 @@ export default function POSScreen() {
   const [deliveryCount,     setDeliveryCount]     = useState(() => pendingDeliveryCount());
   const [editingDelivery,   setEditingDelivery]   = useState<DeliveryOrderType | null>(null);
   const [deliverySaved,     setDeliverySaved]     = useState(false);
+  const [viewMode,          setViewMode]          = useState<PosViewMode>(() => getPosViewMode());
 
   useFocusEffect(useCallback(() => {
     setAllProducts(getProducts());
@@ -362,10 +366,12 @@ export default function POSScreen() {
       setCart(editing.items as any);
       setEditingDeliveryOrder(null);
     }
+    loadPosViewMode().then(() => setViewMode(getPosViewMode()));
     const unsubP = subscribeProducts(() => setAllProducts(getProducts()));
     const unsubH = subscribeHeldOrders(() => setHeldCount(heldOrderCount()));
     const unsubD = subscribeDeliveryOrders(() => setDeliveryCount(pendingDeliveryCount()));
-    return () => { unsubP(); unsubH(); unsubD(); };
+    const unsubV = subscribePosViewMode(() => setViewMode(getPosViewMode()));
+    return () => { unsubP(); unsubH(); unsubD(); unsubV(); };
   }, []));
 
   const panelH     = useRef(new Animated.Value(0)).current;
@@ -528,6 +534,42 @@ export default function POSScreen() {
     setTimeout(() => { setOrderPlaced(false); setCart([]); }, 2800);
   };
 
+  const gridCols = viewMode === "grid4" ? (layout.isWide ? 5 : 4) : (layout.isWide ? 4 : 3);
+  const handleModeChange = (m: PosViewMode) => { setViewMode(m); setPosViewMode(m); };
+  const renderProducts = () => {
+    if (filtered.length === 0) {
+      return (
+        <View style={styles.emptyState}>
+          <Feather name="search" size={32} color={colors.mutedForeground} />
+          <Text style={[styles.emptyText, { color: colors.mutedForeground, fontFamily: "Inter_400Regular" }]}>No products found</Text>
+        </View>
+      );
+    }
+    if (viewMode === "list") {
+      return filtered.map(item => (
+        <ListRow key={item.id} item={item} cartItem={cart.find(c => c.id === item.id)} onPress={() => handleProductPress(item)} />
+      ));
+    }
+    if (viewMode === "listslim") {
+      return filtered.map(item => (
+        <SlimListRow key={item.id} item={item} cartItem={cart.find(c => c.id === item.id)} onPress={() => handleProductPress(item)} />
+      ));
+    }
+    const cols = gridCols;
+    const rows: StoreProduct[][] = [];
+    for (let i = 0; i < filtered.length; i += cols) rows.push(filtered.slice(i, i + cols));
+    return rows.map((row, ri) => (
+      <View key={ri} style={[styles.gridRow, viewMode === "grid4" && { gap: 6 }]}>
+        {row.map(item =>
+          viewMode === "gridflat"
+            ? <CompactGridTile key={item.id} item={item} cartItem={cart.find(c => c.id === item.id)} onPress={() => handleProductPress(item)} />
+            : <ProductCard     key={item.id} item={item} cartItem={cart.find(c => c.id === item.id)} onPress={() => handleProductPress(item)} />
+        )}
+        {row.length < cols && Array(cols - row.length).fill(null).map((_, i) => <View key={`ph_${i}`} style={{ flex: 1 }} />)}
+      </View>
+    ));
+  };
+
   if (orderPlaced) {
     return (
       <View style={[styles.root, { backgroundColor: colors.background }]}>
@@ -569,6 +611,292 @@ export default function POSScreen() {
             <Feather name="plus" size={18} color="#fff" />
             <Text style={[styles.newSaleText, { fontFamily: "Inter_700Bold" }]}>New Sale</Text>
           </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
+  const DK_CAT_ICONS: Record<string, string> = {
+    "All": "grid", "Food & Bev": "coffee", "Electronics": "zap",
+    "Clothing": "scissors", "Home & Living": "home", "Books": "book-open",
+    "Sports": "activity", "Beauty": "star", "Accessories": "watch", "Stationery": "pen-tool",
+  };
+
+  if (layout.isWide) {
+    return (
+      <View style={[styles.root, { backgroundColor: colors.background, flexDirection: "row" }]}>
+        <PaymentModal visible={payVisible} total={total} onClose={() => setPayVisible(false)} onSuccess={handlePaySuccess} onDelivery={handleDeliveryCheckout} isEditMode={!!editingDelivery} />
+        <WeightInputModal visible={!!weightModal} product={weightModal} existing={cart.find(c => c.id === weightModal?.id)?.qty ?? 0} onClose={() => setWeightModal(null)} onConfirm={handleWeightConfirm} />
+        <HoldOrderModal visible={holdModalVisible} items={cart} total={total} defaultOrderName={getNextOrderName()} onConfirm={handleHoldConfirm} onCancel={() => setHoldModalVisible(false)} />
+        <HeldOrdersPanel visible={heldPanelVisible} hasActiveCart={cart.length > 0} onResume={handleResume} onClose={() => setHeldPanelVisible(false)} />
+
+        {/* ── COL 1: Category Sidebar ── */}
+        <View style={dk.catSidebar}>
+          {/* Brand */}
+          <View style={[dk.brand, { paddingTop: topPad + 6 }]}>
+            <View style={dk.brandLogoWrap}>
+              <Feather name="shopping-bag" size={18} color="#fff" />
+            </View>
+            <View>
+              <Text style={[dk.brandName, { fontFamily: "Inter_700Bold" }]}>IPOS</Text>
+              <Text style={[dk.brandSub, { fontFamily: "Inter_400Regular" }]}>Point of Sale</Text>
+            </View>
+          </View>
+
+          {/* Edit mode banner in sidebar */}
+          {editingDelivery && (
+            <View style={dk.sideEditBanner}>
+              <Feather name="edit-2" size={11} color="#FCD34D" />
+              <Text style={[dk.sideEditText, { fontFamily: "Inter_600SemiBold" }]} numberOfLines={2}>
+                Editing {editingDelivery.orderNo}
+              </Text>
+              <TouchableOpacity onPress={() => { setEditingDelivery(null); setCart([]); }}>
+                <Feather name="x" size={13} color="rgba(255,255,255,0.7)" />
+              </TouchableOpacity>
+            </View>
+          )}
+          {deliverySaved && (
+            <View style={[dk.sideEditBanner, { backgroundColor: "rgba(16,185,129,0.25)" }]}>
+              <Feather name="check-circle" size={11} color="#6EE7B7" />
+              <Text style={[dk.sideEditText, { fontFamily: "Inter_600SemiBold" }]} numberOfLines={2}>Order saved!</Text>
+            </View>
+          )}
+
+          {/* Category section label */}
+          <Text style={[dk.catSectionLabel, { fontFamily: "Inter_600SemiBold" }]}>CATEGORIES</Text>
+
+          {/* Category list */}
+          <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 8 }}>
+            {CATEGORIES.map(cat => {
+              const isActive = activeCategory === cat;
+              const icon = DK_CAT_ICONS[cat] ?? "tag";
+              const catColor = isActive ? colors.primary : "rgba(255,255,255,0.55)";
+              return (
+                <TouchableOpacity
+                  key={cat}
+                  onPress={() => setActiveCategory(cat)}
+                  style={[dk.catItem, isActive && dk.catItemActive]}
+                  activeOpacity={0.75}
+                >
+                  <View style={[dk.catItemIcon, { backgroundColor: isActive ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.07)" }]}>
+                    <Feather name={icon as any} size={14} color={isActive ? "#fff" : "rgba(255,255,255,0.65)"} />
+                  </View>
+                  <Text style={[dk.catItemText, { fontFamily: isActive ? "Inter_600SemiBold" : "Inter_400Regular", color: isActive ? "#fff" : "rgba(255,255,255,0.7)" }]} numberOfLines={1}>
+                    {cat}
+                  </Text>
+                  {isActive && <View style={dk.catActiveBar} />}
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+
+          {/* Bottom action buttons */}
+          <View style={dk.sideBottom}>
+            <TouchableOpacity
+              onPress={() => router.push("/delivery" as any)}
+              style={[dk.sideAction, deliveryCount > 0 && dk.sideActionActive]}
+              activeOpacity={0.8}
+            >
+              <Feather name="truck" size={14} color={deliveryCount > 0 ? "#fff" : "rgba(255,255,255,0.55)"} />
+              <Text style={[dk.sideActionText, { fontFamily: "Inter_500Medium", color: deliveryCount > 0 ? "#fff" : "rgba(255,255,255,0.6)" }]}>
+                {deliveryCount > 0 ? `Delivery (${deliveryCount})` : "Delivery"}
+              </Text>
+              {deliveryCount > 0 && (
+                <View style={dk.sideBadge}><Text style={[dk.sideBadgeText, { fontFamily: "Inter_700Bold" }]}>{deliveryCount}</Text></View>
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setHeldPanelVisible(true)}
+              style={[dk.sideAction, heldCount > 0 && dk.sideActionActive]}
+              activeOpacity={0.8}
+            >
+              <Feather name="pause-circle" size={14} color={heldCount > 0 ? "#fff" : "rgba(255,255,255,0.55)"} />
+              <Text style={[dk.sideActionText, { fontFamily: "Inter_500Medium", color: heldCount > 0 ? "#fff" : "rgba(255,255,255,0.6)" }]}>
+                {heldCount > 0 ? `Held (${heldCount})` : "Held Orders"}
+              </Text>
+              {heldCount > 0 && (
+                <View style={[dk.sideBadge, { backgroundColor: "#F59E0B" }]}><Text style={[dk.sideBadgeText, { fontFamily: "Inter_700Bold" }]}>{heldCount}</Text></View>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* ── COL 2: Product Browser ── */}
+        <View style={dk.productCol}>
+          {/* Top toolbar */}
+          <View style={[dk.toolbar, { paddingTop: topPad + 10, backgroundColor: colors.card, borderBottomColor: colors.border }]}>
+            <View style={dk.toolbarLeft}>
+              <Text style={[dk.toolbarTitle, { color: colors.foreground, fontFamily: "Inter_700Bold" }]}>
+                {editingDelivery ? `Editing ${editingDelivery.orderNo}` : "Products"}
+              </Text>
+              {activeCategory !== "All" && (
+                <View style={[dk.catChip, { backgroundColor: colors.primary + "18", borderColor: colors.primary + "40" }]}>
+                  <Text style={[dk.catChipText, { color: colors.primary, fontFamily: "Inter_600SemiBold" }]}>{activeCategory}</Text>
+                  <TouchableOpacity onPress={() => setActiveCategory("All")}>
+                    <Feather name="x" size={11} color={colors.primary} />
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+            <View style={[dk.searchWrap, { backgroundColor: colors.background, borderColor: colors.border }]}>
+              <Feather name="search" size={14} color={colors.mutedForeground} />
+              <TextInput
+                style={[dk.searchIn, { color: colors.foreground, fontFamily: "Inter_400Regular" }]}
+                placeholder="Search or scan barcode…"
+                placeholderTextColor={colors.mutedForeground}
+                value={search}
+                onChangeText={setSearch}
+              />
+              {search.length > 0
+                ? <TouchableOpacity onPress={() => setSearch("")}><Feather name="x" size={13} color={colors.mutedForeground} /></TouchableOpacity>
+                : <Feather name="camera" size={14} color={colors.mutedForeground} />
+              }
+            </View>
+            <ViewModeBar mode={viewMode} onChange={handleModeChange} />
+          </View>
+
+          {/* Weight legend */}
+          <View style={[dk.legendBar, { backgroundColor: "#F59E0B08", borderBottomColor: "#F59E0B20" }]}>
+            <Feather name="sliders" size={11} color="#B45309" />
+            <Text style={[dk.legendBarText, { color: "#B45309", fontFamily: "Inter_400Regular" }]}>
+              Items with <Text style={{ fontFamily: "Inter_700Bold" }}>kg / g / litre / ml</Text> — tap to enter weight quantity
+            </Text>
+            <Text style={[dk.productCount, { color: colors.mutedForeground, fontFamily: "Inter_400Regular" }]}>
+              {filtered.length} item{filtered.length !== 1 ? "s" : ""}
+            </Text>
+          </View>
+
+          {/* Product grid */}
+          <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={[styles.gridContainer, { paddingBottom: 24 }]}>
+            {renderProducts()}
+          </ScrollView>
+        </View>
+
+        {/* ── COL 3: Cart / Order Panel ── */}
+        <View style={[dk.cartCol, { borderLeftColor: colors.border, backgroundColor: colors.card }]}>
+          {/* Cart header */}
+          <View style={[dk.cartHeader, { paddingTop: topPad + 10, borderBottomColor: colors.border }]}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+              <View style={[dk.cartIconBig, { backgroundColor: colors.primary }]}>
+                <Feather name="shopping-cart" size={17} color="#fff" />
+                {hasCart && (
+                  <View style={dk.cartCountBubble}>
+                    <Text style={[dk.cartCountText, { fontFamily: "Inter_700Bold" }]}>{cart.length}</Text>
+                  </View>
+                )}
+              </View>
+              <View>
+                <Text style={[dk.cartTitle, { color: colors.foreground, fontFamily: "Inter_700Bold" }]}>Current Order</Text>
+                <Text style={[dk.cartSubtitle, { color: colors.mutedForeground, fontFamily: "Inter_400Regular" }]}>
+                  {hasCart ? `${cart.length} line item${cart.length !== 1 ? "s" : ""} · ${itemCount} unit${itemCount !== 1 ? "s" : ""}` : "No items yet"}
+                </Text>
+              </View>
+            </View>
+            {hasCart && (
+              <TouchableOpacity onPress={() => setCart([])} style={dk.clearBtn}>
+                <Feather name="trash-2" size={13} color="#EF4444" />
+                <Text style={[dk.clearBtnText, { fontFamily: "Inter_600SemiBold" }]}>Clear</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {hasCart ? (
+            <>
+              {/* Cart items list */}
+              <ScrollView style={{ flex: 1, paddingHorizontal: 14 }} showsVerticalScrollIndicator={false} nestedScrollEnabled>
+                {cart.map((item, idx) => (
+                  <View key={item.id} style={[dk.cartRow, idx < cart.length - 1 && { borderBottomWidth: 1, borderBottomColor: colors.border }]}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[dk.cartRowName, { color: colors.foreground, fontFamily: "Inter_500Medium" }]} numberOfLines={1}>{item.name}</Text>
+                      <Text style={[dk.cartRowUnit, { color: colors.mutedForeground, fontFamily: "Inter_400Regular" }]}>₹{item.price}/{item.unit}</Text>
+                    </View>
+                    {item.weightBased ? (
+                      <TouchableOpacity
+                        style={[dk.weightChip, { borderColor: "#4F46E5", backgroundColor: "#4F46E510" }]}
+                        onPress={() => { const prod = allProducts.find(p => p.id === item.id); if (prod) setWeightModal(prod); }}
+                      >
+                        <Feather name="sliders" size={11} color="#4F46E5" />
+                        <Text style={[dk.weightChipText, { color: "#4F46E5", fontFamily: "Inter_700Bold" }]}>{formatQty(item.qty, item.unit)}</Text>
+                      </TouchableOpacity>
+                    ) : (
+                      <View style={dk.qtyCtrl}>
+                        <TouchableOpacity onPress={() => updatePcsQty(item.id, -1)} style={[dk.qtyBtn, { borderColor: colors.border }]}>
+                          <Feather name="minus" size={12} color={colors.foreground} />
+                        </TouchableOpacity>
+                        <Text style={[dk.qtyNum, { color: colors.foreground, fontFamily: "Inter_700Bold" }]}>{item.qty}</Text>
+                        <TouchableOpacity onPress={() => updatePcsQty(item.id, 1)} style={[dk.qtyBtn, { borderColor: colors.primary, backgroundColor: colors.primary }]}>
+                          <Feather name="plus" size={12} color="#fff" />
+                        </TouchableOpacity>
+                      </View>
+                    )}
+                    <Text style={[dk.cartRowAmt, { color: colors.foreground, fontFamily: "Inter_700Bold" }]}>
+                      ₹{(item.price * item.qty).toFixed(item.weightBased ? 2 : 0)}
+                    </Text>
+                    <TouchableOpacity onPress={() => removeItem(item.id)} style={{ padding: 4 }}>
+                      <Feather name="trash-2" size={14} color={colors.destructive} />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </ScrollView>
+
+              {/* Order summary */}
+              <View style={[dk.orderSummary, { borderTopColor: colors.border, backgroundColor: colors.secondary }]}>
+                <View style={dk.summRow}>
+                  <Text style={[dk.summLabel, { color: colors.mutedForeground, fontFamily: "Inter_400Regular" }]}>Subtotal</Text>
+                  <Text style={[dk.summVal, { color: colors.foreground, fontFamily: "Inter_500Medium" }]}>₹{subtotal.toFixed(2)}</Text>
+                </View>
+                <View style={dk.summRow}>
+                  <Text style={[dk.summLabel, { color: colors.mutedForeground, fontFamily: "Inter_400Regular" }]}>GST (18%)</Text>
+                  <Text style={[dk.summVal, { color: colors.foreground, fontFamily: "Inter_500Medium" }]}>+₹{tax.toLocaleString()}</Text>
+                </View>
+                <View style={[dk.summRow, dk.totalRow, { borderTopColor: colors.border }]}>
+                  <Text style={[dk.totalLabel2, { color: colors.foreground, fontFamily: "Inter_700Bold" }]}>Total</Text>
+                  <Text style={[dk.totalAmt, { color: colors.primary, fontFamily: "Inter_700Bold" }]}>₹{total.toLocaleString()}</Text>
+                </View>
+              </View>
+
+              {/* Action buttons */}
+              <View style={dk.cartActions}>
+                <TouchableOpacity
+                  style={[dk.holdBtn, { borderColor: "#F59E0B50", backgroundColor: "#F59E0B0D" }]}
+                  onPress={() => setHoldModalVisible(true)}
+                  activeOpacity={0.78}
+                >
+                  <Feather name="pause-circle" size={15} color="#D97706" />
+                  <Text style={[dk.holdBtnText, { color: "#D97706", fontFamily: "Inter_600SemiBold" }]}>Hold Order</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[dk.payBigBtn, { backgroundColor: editingDelivery ? "#4F46E5" : colors.success }]}
+                  onPress={() => {
+                    if (editingDelivery) {
+                      updateDeliveryOrderItems(editingDelivery.id, cart.map(c => ({ id: c.id, name: c.name, price: c.price, qty: c.qty, unit: c.unit, weightBased: c.weightBased })), subtotal, tax, total);
+                      setCart([]); setEditingDelivery(null);
+                      router.push(`/delivery/${editingDelivery.id}` as any);
+                    } else { setPayVisible(true); }
+                  }}
+                  activeOpacity={0.88}
+                >
+                  <View style={dk.payBigInner}>
+                    <Feather name={editingDelivery ? "save" : "credit-card"} size={18} color="#fff" />
+                    <Text style={[dk.payBigLabel, { fontFamily: "Inter_700Bold" }]}>
+                      {editingDelivery ? "Save Changes" : "Charge"}
+                    </Text>
+                  </View>
+                  <Text style={[dk.payBigAmt, { fontFamily: "Inter_700Bold" }]}>₹{total.toLocaleString()}</Text>
+                </TouchableOpacity>
+              </View>
+            </>
+          ) : (
+            <View style={dk.emptyCart}>
+              <View style={[dk.emptyCartCircle, { backgroundColor: colors.muted }]}>
+                <Feather name="shopping-cart" size={36} color={colors.mutedForeground} />
+              </View>
+              <Text style={[dk.emptyCartTitle, { color: colors.foreground, fontFamily: "Inter_600SemiBold" }]}>Order is empty</Text>
+              <Text style={[dk.emptyCartSub, { color: colors.mutedForeground, fontFamily: "Inter_400Regular" }]}>
+                Pick a category on the left and tap a product to add it to this order
+              </Text>
+            </View>
+          )}
         </View>
       </View>
     );
@@ -687,6 +1015,9 @@ export default function POSScreen() {
         }
       </View>
 
+      {/* View mode selector */}
+      <ViewModeBar mode={viewMode} onChange={handleModeChange} />
+
       {/* Category tabs */}
       <ScrollView
         horizontal
@@ -730,36 +1061,7 @@ export default function POSScreen() {
           { paddingBottom: hasCart ? cartBottom + EXPANDED_H + 16 : cartBottom + 16 },
         ]}
       >
-        {filtered.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Feather name="search" size={32} color={colors.mutedForeground} />
-            <Text style={[styles.emptyText, { color: colors.mutedForeground, fontFamily: "Inter_400Regular" }]}>
-              No products found
-            </Text>
-          </View>
-        ) : (
-          <>
-            {(() => {
-              const rows: StoreProduct[][] = [];
-              for (let i = 0; i < filtered.length; i += 3) rows.push(filtered.slice(i, i + 3));
-              return rows.map((row, ri) => (
-                <View key={ri} style={styles.gridRow}>
-                  {row.map((item) => (
-                    <ProductCard
-                      key={item.id}
-                      item={item}
-                      cartItem={cart.find(c => c.id === item.id)}
-                      onPress={() => handleProductPress(item)}
-                    />
-                  ))}
-                  {row.length < 3 && Array(3 - row.length).fill(null).map((_, i) => (
-                    <View key={`ph_${i}`} style={{ flex: 1 }} />
-                  ))}
-                </View>
-              ));
-            })()}
-          </>
-        )}
+        {renderProducts()}
       </ScrollView>
 
       {/* Cart panel */}
@@ -1171,4 +1473,173 @@ const styles = StyleSheet.create({
     gap: 8, borderRadius: 14, paddingVertical: 14,
   },
   weightConfirmText: { color: "#fff", fontSize: 16 },
+});
+
+const dk = StyleSheet.create({
+  catSidebar: {
+    width: 210,
+    backgroundColor: "#3730A3",
+    flexDirection: "column",
+  },
+  brand: {
+    flexDirection: "row", alignItems: "center", gap: 10,
+    paddingHorizontal: 16, paddingBottom: 14,
+    borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.12)",
+  },
+  brandLogoWrap: {
+    width: 36, height: 36, borderRadius: 10,
+    backgroundColor: "rgba(255,255,255,0.18)",
+    alignItems: "center", justifyContent: "center",
+  },
+  brandName: { color: "#fff", fontSize: 18 },
+  brandSub:  { color: "rgba(255,255,255,0.55)", fontSize: 10, marginTop: 1 },
+
+  sideEditBanner: {
+    flexDirection: "row", alignItems: "center", gap: 6,
+    margin: 10, marginBottom: 0, padding: 8, borderRadius: 8,
+    backgroundColor: "rgba(255,255,255,0.12)",
+  },
+  sideEditText: { flex: 1, color: "#fff", fontSize: 11 },
+
+  catSectionLabel: {
+    color: "rgba(255,255,255,0.4)", fontSize: 9, letterSpacing: 1.2,
+    paddingHorizontal: 16, paddingTop: 14, paddingBottom: 6,
+  },
+  catItem: {
+    flexDirection: "row", alignItems: "center", gap: 10,
+    paddingHorizontal: 12, paddingVertical: 9, marginHorizontal: 8,
+    borderRadius: 10, position: "relative",
+  },
+  catItemActive: { backgroundColor: "rgba(255,255,255,0.14)" },
+  catItemIcon: {
+    width: 28, height: 28, borderRadius: 8,
+    alignItems: "center", justifyContent: "center",
+  },
+  catItemText: { fontSize: 13, flex: 1 },
+  catActiveBar: {
+    position: "absolute", right: 0, top: "25%", bottom: "25%",
+    width: 3, borderRadius: 2, backgroundColor: "#fff",
+  },
+
+  sideBottom: {
+    borderTopWidth: 1, borderTopColor: "rgba(255,255,255,0.12)",
+    padding: 10, gap: 6,
+  },
+  sideAction: {
+    flexDirection: "row", alignItems: "center", gap: 8,
+    paddingHorizontal: 10, paddingVertical: 9, borderRadius: 10,
+    backgroundColor: "rgba(255,255,255,0.06)",
+  },
+  sideActionActive: { backgroundColor: "rgba(255,255,255,0.15)" },
+  sideActionText: { flex: 1, fontSize: 12 },
+  sideBadge: {
+    backgroundColor: "#EF4444", borderRadius: 10,
+    minWidth: 18, height: 18, alignItems: "center", justifyContent: "center",
+    paddingHorizontal: 4,
+  },
+  sideBadgeText: { color: "#fff", fontSize: 10 },
+
+  productCol: { flex: 1, flexDirection: "column", overflow: "hidden" },
+
+  toolbar: {
+    flexDirection: "row", alignItems: "center", gap: 12,
+    paddingHorizontal: 16, paddingBottom: 10, borderBottomWidth: 1,
+  },
+  toolbarLeft: { flexDirection: "row", alignItems: "center", gap: 10, flexShrink: 0 },
+  toolbarTitle: { fontSize: 16 },
+  catChip: {
+    flexDirection: "row", alignItems: "center", gap: 5,
+    paddingHorizontal: 9, paddingVertical: 4, borderRadius: 20, borderWidth: 1,
+  },
+  catChipText: { fontSize: 11 },
+  searchWrap: {
+    flex: 1, flexDirection: "row", alignItems: "center", gap: 8,
+    borderRadius: 10, borderWidth: 1, paddingHorizontal: 11, paddingVertical: 8,
+  },
+  searchIn: { flex: 1, fontSize: 13 },
+
+  legendBar: {
+    flexDirection: "row", alignItems: "center", gap: 8,
+    paddingHorizontal: 16, paddingVertical: 7,
+    borderBottomWidth: 1,
+  },
+  legendBarText: { flex: 1, fontSize: 11 },
+  productCount:  { fontSize: 11 },
+
+  cartCol: {
+    width: 390, borderLeftWidth: 1, flexDirection: "column",
+  },
+  cartHeader: {
+    paddingHorizontal: 16, paddingBottom: 12,
+    borderBottomWidth: 1, flexDirection: "row",
+    alignItems: "center", justifyContent: "space-between",
+  },
+  cartIconBig: {
+    width: 40, height: 40, borderRadius: 12,
+    alignItems: "center", justifyContent: "center",
+    position: "relative",
+  },
+  cartCountBubble: {
+    position: "absolute", top: -4, right: -4,
+    backgroundColor: "#EF4444", width: 17, height: 17, borderRadius: 9,
+    alignItems: "center", justifyContent: "center",
+  },
+  cartCountText: { color: "#fff", fontSize: 9 },
+  cartTitle:    { fontSize: 16 },
+  cartSubtitle: { fontSize: 11, marginTop: 1 },
+  clearBtn: {
+    flexDirection: "row", alignItems: "center", gap: 5,
+    paddingHorizontal: 10, paddingVertical: 6, borderRadius: 9,
+    backgroundColor: "#EF444413",
+  },
+  clearBtnText: { color: "#EF4444", fontSize: 12 },
+
+  cartRow: {
+    flexDirection: "row", alignItems: "center", gap: 8,
+    paddingVertical: 10,
+  },
+  cartRowName: { fontSize: 13, marginBottom: 2 },
+  cartRowUnit: { fontSize: 11 },
+  cartRowAmt:  { fontSize: 14, minWidth: 58, textAlign: "right" },
+  weightChip: {
+    flexDirection: "row", alignItems: "center", gap: 5,
+    paddingHorizontal: 9, paddingVertical: 5, borderRadius: 8, borderWidth: 1.5,
+  },
+  weightChipText: { fontSize: 12 },
+  qtyCtrl: { flexDirection: "row", alignItems: "center", gap: 6 },
+  qtyBtn: {
+    width: 26, height: 26, borderRadius: 7,
+    alignItems: "center", justifyContent: "center", borderWidth: 1,
+  },
+  qtyNum: { fontSize: 14, minWidth: 22, textAlign: "center" },
+
+  orderSummary: {
+    paddingHorizontal: 16, paddingVertical: 14,
+    borderTopWidth: 1, gap: 8,
+  },
+  summRow:    { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  summLabel:  { fontSize: 13 },
+  summVal:    { fontSize: 13 },
+  totalRow:   { borderTopWidth: 1, paddingTop: 10, marginTop: 2 },
+  totalLabel2:{ fontSize: 18 },
+  totalAmt:   { fontSize: 26 },
+
+  cartActions: { padding: 14, paddingTop: 10, gap: 10 },
+  holdBtn: {
+    flexDirection: "row", alignItems: "center", justifyContent: "center",
+    gap: 7, borderRadius: 12, paddingVertical: 11, borderWidth: 1,
+  },
+  holdBtnText: { fontSize: 14 },
+  payBigBtn: {
+    borderRadius: 14, paddingVertical: 14, paddingHorizontal: 18,
+    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
+  },
+  payBigInner:  { flexDirection: "row", alignItems: "center", gap: 8 },
+  payBigLabel:  { color: "#fff", fontSize: 16 },
+  payBigAmt:    { color: "#fff", fontSize: 20 },
+
+  emptyCart: { flex: 1, alignItems: "center", justifyContent: "center", gap: 14, padding: 32 },
+  emptyCartCircle: { width: 88, height: 88, borderRadius: 44, alignItems: "center", justifyContent: "center" },
+  emptyCartTitle:  { fontSize: 18 },
+  emptyCartSub: { fontSize: 13, textAlign: "center", lineHeight: 20 },
 });
