@@ -46,6 +46,9 @@ import {
   DeliveryOrder as DeliveryOrderType,
 } from "@/store/deliveryOrders";
 import { DeliveryCheckoutParams } from "@/components/PaymentModal";
+import { getPosViewMode, setPosViewMode, subscribePosViewMode, loadPosViewMode } from "@/store/posLayout";
+import type { PosViewMode } from "@/store/posLayout";
+import { CompactGridTile, ListRow, SlimListRow, ViewModeBar } from "@/components/PosProductCards";
 
 interface StoreProduct {
   id: string;
@@ -351,6 +354,7 @@ export default function POSScreen() {
   const [deliveryCount,     setDeliveryCount]     = useState(() => pendingDeliveryCount());
   const [editingDelivery,   setEditingDelivery]   = useState<DeliveryOrderType | null>(null);
   const [deliverySaved,     setDeliverySaved]     = useState(false);
+  const [viewMode,          setViewMode]          = useState<PosViewMode>(() => getPosViewMode());
 
   useFocusEffect(useCallback(() => {
     setAllProducts(getProducts());
@@ -362,10 +366,12 @@ export default function POSScreen() {
       setCart(editing.items as any);
       setEditingDeliveryOrder(null);
     }
+    loadPosViewMode().then(() => setViewMode(getPosViewMode()));
     const unsubP = subscribeProducts(() => setAllProducts(getProducts()));
     const unsubH = subscribeHeldOrders(() => setHeldCount(heldOrderCount()));
     const unsubD = subscribeDeliveryOrders(() => setDeliveryCount(pendingDeliveryCount()));
-    return () => { unsubP(); unsubH(); unsubD(); };
+    const unsubV = subscribePosViewMode(() => setViewMode(getPosViewMode()));
+    return () => { unsubP(); unsubH(); unsubD(); unsubV(); };
   }, []));
 
   const panelH     = useRef(new Animated.Value(0)).current;
@@ -528,6 +534,42 @@ export default function POSScreen() {
     setTimeout(() => { setOrderPlaced(false); setCart([]); }, 2800);
   };
 
+  const gridCols = viewMode === "grid4" ? (layout.isWide ? 5 : 4) : (layout.isWide ? 4 : 3);
+  const handleModeChange = (m: PosViewMode) => { setViewMode(m); setPosViewMode(m); };
+  const renderProducts = () => {
+    if (filtered.length === 0) {
+      return (
+        <View style={styles.emptyState}>
+          <Feather name="search" size={32} color={colors.mutedForeground} />
+          <Text style={[styles.emptyText, { color: colors.mutedForeground, fontFamily: "Inter_400Regular" }]}>No products found</Text>
+        </View>
+      );
+    }
+    if (viewMode === "list") {
+      return filtered.map(item => (
+        <ListRow key={item.id} item={item} cartItem={cart.find(c => c.id === item.id)} onPress={() => handleProductPress(item)} />
+      ));
+    }
+    if (viewMode === "listslim") {
+      return filtered.map(item => (
+        <SlimListRow key={item.id} item={item} cartItem={cart.find(c => c.id === item.id)} onPress={() => handleProductPress(item)} />
+      ));
+    }
+    const cols = gridCols;
+    const rows: StoreProduct[][] = [];
+    for (let i = 0; i < filtered.length; i += cols) rows.push(filtered.slice(i, i + cols));
+    return rows.map((row, ri) => (
+      <View key={ri} style={[styles.gridRow, viewMode === "grid4" && { gap: 6 }]}>
+        {row.map(item =>
+          viewMode === "gridflat"
+            ? <CompactGridTile key={item.id} item={item} cartItem={cart.find(c => c.id === item.id)} onPress={() => handleProductPress(item)} />
+            : <ProductCard     key={item.id} item={item} cartItem={cart.find(c => c.id === item.id)} onPress={() => handleProductPress(item)} />
+        )}
+        {row.length < cols && Array(cols - row.length).fill(null).map((_, i) => <View key={`ph_${i}`} style={{ flex: 1 }} />)}
+      </View>
+    ));
+  };
+
   if (orderPlaced) {
     return (
       <View style={[styles.root, { backgroundColor: colors.background }]}>
@@ -623,6 +665,8 @@ export default function POSScreen() {
               <TextInput style={[styles.searchInput, { color: colors.foreground, fontFamily: "Inter_400Regular" }]} placeholder="Search or scan barcode..." placeholderTextColor={colors.mutedForeground} value={search} onChangeText={setSearch} />
               {search.length > 0 ? <TouchableOpacity onPress={() => setSearch("")}><Feather name="x" size={15} color={colors.mutedForeground} /></TouchableOpacity> : <Feather name="camera" size={16} color={colors.mutedForeground} />}
             </View>
+            {/* View mode selector */}
+            <ViewModeBar mode={viewMode} onChange={handleModeChange} />
             {/* Category tabs */}
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.catTabs} style={styles.catTabsWrap}>
               {CATEGORIES.map((cat) => {
@@ -643,25 +687,7 @@ export default function POSScreen() {
             </View>
             {/* Product grid */}
             <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={[styles.gridContainer, { paddingBottom: 24 }]}>
-              {filtered.length === 0 ? (
-                <View style={styles.emptyState}>
-                  <Feather name="search" size={32} color={colors.mutedForeground} />
-                  <Text style={[styles.emptyText, { color: colors.mutedForeground, fontFamily: "Inter_400Regular" }]}>No products found</Text>
-                </View>
-              ) : (
-                (() => {
-                  const rows: StoreProduct[][] = [];
-                  for (let i = 0; i < filtered.length; i += 3) rows.push(filtered.slice(i, i + 3));
-                  return rows.map((row, ri) => (
-                    <View key={ri} style={styles.gridRow}>
-                      {row.map((item) => (
-                        <ProductCard key={item.id} item={item} cartItem={cart.find(c => c.id === item.id)} onPress={() => handleProductPress(item)} />
-                      ))}
-                      {row.length < 3 && Array(3 - row.length).fill(null).map((_, i) => <View key={`ph_${i}`} style={{ flex: 1 }} />)}
-                    </View>
-                  ));
-                })()
-              )}
+              {renderProducts()}
             </ScrollView>
           </View>
 
@@ -884,6 +910,9 @@ export default function POSScreen() {
         }
       </View>
 
+      {/* View mode selector */}
+      <ViewModeBar mode={viewMode} onChange={handleModeChange} />
+
       {/* Category tabs */}
       <ScrollView
         horizontal
@@ -927,36 +956,7 @@ export default function POSScreen() {
           { paddingBottom: hasCart ? cartBottom + EXPANDED_H + 16 : cartBottom + 16 },
         ]}
       >
-        {filtered.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Feather name="search" size={32} color={colors.mutedForeground} />
-            <Text style={[styles.emptyText, { color: colors.mutedForeground, fontFamily: "Inter_400Regular" }]}>
-              No products found
-            </Text>
-          </View>
-        ) : (
-          <>
-            {(() => {
-              const rows: StoreProduct[][] = [];
-              for (let i = 0; i < filtered.length; i += 3) rows.push(filtered.slice(i, i + 3));
-              return rows.map((row, ri) => (
-                <View key={ri} style={styles.gridRow}>
-                  {row.map((item) => (
-                    <ProductCard
-                      key={item.id}
-                      item={item}
-                      cartItem={cart.find(c => c.id === item.id)}
-                      onPress={() => handleProductPress(item)}
-                    />
-                  ))}
-                  {row.length < 3 && Array(3 - row.length).fill(null).map((_, i) => (
-                    <View key={`ph_${i}`} style={{ flex: 1 }} />
-                  ))}
-                </View>
-              ));
-            })()}
-          </>
-        )}
+        {renderProducts()}
       </ScrollView>
 
       {/* Cart panel */}
