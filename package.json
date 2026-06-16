@@ -6,7 +6,12 @@
     "preinstall": "sh -c 'rm -f package-lock.json yarn.lock; case \"$npm_config_user_agent\" in pnpm/*) ;; *) echo \"Use pnpm instead\" >&2; exit 1 ;; esac'",
     "build": "pnpm run typecheck && pnpm -r --if-present run build",
     "typecheck:libs": "tsc --build",
-    "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"
+    "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck",
+    "dev:api": "PORT=8080 DATABASE_URL=postgresql://localhost:5432/posify pnpm --filter @workspace/api-server run dev",
+    "dev:dashboard": "PORT=8082 pnpm --filter @workspace/pos-dashboard run start -- --port 8082",
+    "dev:dashboard:tunnel": "PORT=8082 pnpm --filter @workspace/pos-dashboard run start:tunnel -- --port 8082",
+    "dev:sandbox": "PORT=8081 BASE_PATH=/__mockup pnpm --filter @workspace/mockup-sandbox run dev",
+    "dev:all": "pnpm run dev:api & pnpm run dev:dashboard & pnpm run dev:sandbox"
   },
   "private": true,
   "devDependencies": {
@@ -16,5 +21,6 @@
   },
   "dependencies": {
     "@replit/connectors-sdk": "^0.4.0"
-  }
+  },
+  "packageManager": "pnpm@10.15.1+sha512.34e538c329b5553014ca8e8f4535997f96180a1d0f614339357449935350d924e22f8614682191264ec33d1462ac21561aff97f6bb18065351c162c7e8f6de67"
 }

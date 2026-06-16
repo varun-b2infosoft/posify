@@ -191,7 +191,7 @@ export default function LoyaltyScreen() {
                       </Text>
                     </View>
                     <View style={[styles.progressBg, { backgroundColor: colors.border }]}>
-                      <View style={[styles.progressFill, { width: pct + "%", backgroundColor: CUSTOMER_AMBER }]} />
+                      <View style={[styles.progressFill, { width: `${pct}%` as any, backgroundColor: CUSTOMER_AMBER }]} />
                     </View>
                     <Text style={[styles.shopSpent, { color: colors.mutedForeground, fontFamily: "Inter_400Regular" }]}>
                       ₹{shop.totalSpent.toLocaleString()} spent

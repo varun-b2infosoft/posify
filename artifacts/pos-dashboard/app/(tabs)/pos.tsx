@@ -55,6 +55,7 @@ interface StoreProduct {
   stock: number;
   unit: string;
   image?: string;
+  sku?: string;
 }
 
 interface CartItem {

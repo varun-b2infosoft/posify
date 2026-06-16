@@ -18,13 +18,44 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 
 ## Key Commands
 
-- `pnpm run typecheck` — full typecheck across all packages
-- `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- `pnpm --filter @workspace/api-server run dev` — run API server locally
+### Development Servers
+You can start development servers directly from the root workspace using the following commands:
+- `pnpm run dev:all` — starts the API Server, Expo Dashboard, and Component Preview Server concurrently.
+- `pnpm run dev:api` — starts only the API Server (port `8080`).
+- `pnpm run dev:dashboard` — starts the Expo / React Native POS Dashboard Metro bundler in LAN mode (port `8082`). This generates a QR code to scan with Expo Go if your phone is on the same Wi-Fi network.
+- `pnpm run dev:dashboard:tunnel` — starts the Expo POS Dashboard Metro bundler in tunnel mode (port `8082`). Best if your phone is on a different network or Wi-Fi isolation is enabled.
+- `pnpm run dev:sandbox` — starts the Component Preview Server / Canvas (port `8081`).
 
-See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details.
+### Database Commands
+- `pnpm --filter @workspace/db run push` — pushes database schema changes to PostgreSQL.
+
+### Code Quality & Compilation
+- `pnpm run typecheck` — runs full typecheck across all workspace packages.
+- `pnpm run build` — runs typecheck and builds all packages in the workspace.
+- `pnpm --filter @workspace/api-spec run codegen` — regenerates API hooks and Zod schemas from the OpenAPI spec.
+
+## Development Setup Instructions
+
+1. **Database Setup**: Ensure PostgreSQL is running locally. Create a database named `posify`:
+   ```bash
+   createdb posify
+   ```
+2. **Schema Push**: Sync the schema to the database:
+   ```bash
+   DATABASE_URL=postgresql://localhost:5432/posify pnpm --filter @workspace/db run push
+   ```
+3. **Start the Application**: 
+   - **For Local Development**: Run `pnpm run dev:all` or start them separately.
+   - **For Expo Go on Mobile**:
+     - If your phone is on the same Wi-Fi network:
+       ```bash
+       pnpm run dev:dashboard
+       ```
+     - If your phone is on a different network (e.g. mobile data):
+       ```bash
+       pnpm run dev:dashboard:tunnel
+       ```
+     - Scan the printed QR code in the terminal using the Expo Go app on your phone!
 
 ## Artifacts
 

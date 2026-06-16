@@ -192,7 +192,7 @@ export default function CustomerAnalyticsScreen() {
                   <View
                     style={[
                       styles.catBar,
-                      { width: cat.pct + "%", backgroundColor: cat.color },
+                      { width: `${cat.pct}%` as any, backgroundColor: cat.color },
                     ]}
                   />
                 </View>
@@ -251,7 +251,7 @@ export default function CustomerAnalyticsScreen() {
                   </Text>
                 </View>
                 <View style={[styles.shopBarBg, { backgroundColor: colors.border }]}>
-                  <View style={[styles.shopBar, { width: pct + "%", backgroundColor: CUSTOMER_PRIMARY }]} />
+                  <View style={[styles.shopBar, { width: `${pct}%` as any, backgroundColor: CUSTOMER_PRIMARY }]} />
                 </View>
               </View>
             );

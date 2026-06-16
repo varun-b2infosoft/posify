@@ -14,7 +14,11 @@
       "backgroundColor": "#4F46E5"
     },
     "ios": {
-      "supportsTablet": false
+      "supportsTablet": false,
+      "bundleIdentifier": "com.varundev2023.posdashboard",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.anonymous.posdashboard"
@@ -35,6 +39,14 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {
+        "origin": "https://replit.com/"
+      },
+      "eas": {
+        "projectId": "bf5a00a2-a8ea-4a98-931a-501ec3d13f82"
+      }
     }
   }
 }

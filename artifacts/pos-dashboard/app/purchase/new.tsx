@@ -738,6 +738,7 @@ const styles = StyleSheet.create({
   successTitle:     { fontSize: 28 },
   successId:        { fontSize: 18 },
   successSub:       { fontSize: 14, textAlign: "center", lineHeight: 22 },
+  successAmount:    { width: "100%", marginTop: 8 },
   successAmtLabel:  { fontSize: 13, textAlign: "center" },
   successAmtVal:    { fontSize: 30, textAlign: "center", marginTop: 4 },
   newPOBtn: {
