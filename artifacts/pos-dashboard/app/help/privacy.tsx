@@ -22,14 +22,14 @@ const SECTIONS: Section[] = [
     icon: "database",
     color: "#4F46E5",
     body:
-      "We collect the following categories of data when you use POSify:\n\n• Account information: name, mobile number, email address, and business details (store name, GSTIN, PAN)\n• Transaction data: sales records, invoice history, payment methods used\n• Inventory data: products, categories, stock levels\n• Customer data: names, phone numbers, and credit balances you record\n• Device information: device model, OS version, app version, and a unique device identifier\n• Usage analytics: screens visited, features used, session duration (anonymised)\n• Crash reports: error logs to help us fix bugs",
+      "We collect the following categories of data when you use IPOS:\n\n• Account information: name, mobile number, email address, and business details (store name, GSTIN, PAN)\n• Transaction data: sales records, invoice history, payment methods used\n• Inventory data: products, categories, stock levels\n• Customer data: names, phone numbers, and credit balances you record\n• Device information: device model, OS version, app version, and a unique device identifier\n• Usage analytics: screens visited, features used, session duration (anonymised)\n• Crash reports: error logs to help us fix bugs",
   },
   {
     title: "How We Use Your Data",
     icon: "settings",
     color: "#10B981",
     body:
-      "Your data is used for the following purposes:\n\n• Providing and improving the POSify service\n• Generating invoices, reports, and analytics for your business\n• Syncing your data across devices and providing cloud backup\n• Sending transactional notifications (receipts, backup confirmations, payment reminders)\n• Customer support and troubleshooting\n• Detecting and preventing fraud or unauthorised access\n• Complying with legal obligations under Indian law\n\nWe do not use your data for advertising or sell your data to third parties.",
+      "Your data is used for the following purposes:\n\n• Providing and improving the IPOS service\n• Generating invoices, reports, and analytics for your business\n• Syncing your data across devices and providing cloud backup\n• Sending transactional notifications (receipts, backup confirmations, payment reminders)\n• Customer support and troubleshooting\n• Detecting and preventing fraud or unauthorised access\n• Complying with legal obligations under Indian law\n\nWe do not use your data for advertising or sell your data to third parties.",
   },
   {
     title: "Data Storage & Security",
@@ -57,7 +57,7 @@ const SECTIONS: Section[] = [
     icon: "activity",
     color: "#06B6D4",
     body:
-      "The POSify mobile app does not use browser cookies. On the web version of the App, we use functional cookies necessary for authentication and session management only.\n\nWe use anonymised, aggregated analytics to understand feature usage and improve the App. This data cannot be used to identify individual users. You may opt out of analytics collection in App Settings → Privacy.",
+      "The IPOS mobile app does not use browser cookies. On the web version of the App, we use functional cookies necessary for authentication and session management only.\n\nWe use anonymised, aggregated analytics to understand feature usage and improve the App. This data cannot be used to identify individual users. You may opt out of analytics collection in App Settings → Privacy.",
   },
   {
     title: "Third-Party Services",
@@ -78,7 +78,7 @@ const SECTIONS: Section[] = [
     icon: "shield",
     color: "#1E293B",
     body:
-      "POSify is intended for business use by adults (18 years and older). We do not knowingly collect personal data from individuals under 18 years of age.\n\nIf you believe a minor has provided personal data to us, please contact us at privacy@posify.in and we will promptly delete the information.",
+      "IPOS is intended for business use by adults (18 years and older). We do not knowingly collect personal data from individuals under 18 years of age.\n\nIf you believe a minor has provided personal data to us, please contact us at privacy@posify.in and we will promptly delete the information.",
   },
   {
     title: "Changes to This Policy",

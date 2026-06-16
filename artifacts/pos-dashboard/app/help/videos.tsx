@@ -32,7 +32,7 @@ type Video = {
 const VIDEOS: Video[] = [
   {
     id: "v1",
-    title: "Getting Started with POSify",
+    title: "Getting Started with IPOS",
     description: "A complete walkthrough of the app — set up your store, add products, and make your first sale in under 10 minutes.",
     duration: "9:42",
     category: "Getting Started",
@@ -293,7 +293,7 @@ export default function VideoTutorialsScreen() {
               style={{ color: "#EF4444", fontFamily: "Inter_600SemiBold" }}
               onPress={() => Linking.openURL("https://www.youtube.com/results?search_query=posify+pos+tutorials")}
             >
-              POSify channel
+              IPOS channel
             </Text>
             {" "}for new tutorials every week.
           </Text>

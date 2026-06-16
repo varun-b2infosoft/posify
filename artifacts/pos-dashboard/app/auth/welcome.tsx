@@ -83,7 +83,7 @@ export default function WelcomeScreen() {
           <View style={[styles.logoIcon, { backgroundColor: "rgba(255,255,255,0.2)" }]}>
             <Feather name="shopping-bag" size={36} color="#fff" />
           </View>
-          <Text style={[styles.logoText, { fontFamily: "Inter_700Bold" }]}>POSify</Text>
+          <Text style={[styles.logoText, { fontFamily: "Inter_700Bold" }]}>IPOS</Text>
         </View>
         <Text style={[styles.tagline, { fontFamily: "Inter_400Regular" }]}>
           Smart POS for Growing Businesses

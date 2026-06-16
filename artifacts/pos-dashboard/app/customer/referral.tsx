@@ -42,8 +42,8 @@ export default function ReferralScreen() {
   const handleShare = async () => {
     try {
       await Share.share({
-        message: `Join POSify and get ₹50 off your first order! Use my referral code: ${profile.referralCode}\n\nDownload now: https://posify.app`,
-        title:   "Invite to POSify",
+        message: `Join IPOS and get ₹50 off your first order! Use my referral code: ${profile.referralCode}\n\nDownload now: https://posify.app`,
+        title:   "Invite to IPOS",
       });
     } catch {
       Alert.alert("Share failed", "Please try again");
@@ -52,7 +52,7 @@ export default function ReferralScreen() {
 
   const handleWhatsApp = () => {
     const msg = encodeURIComponent(
-      `Hey! Join POSify and get ₹50 off your first order 🎉\nUse my code: ${profile.referralCode}\nhttps://posify.app`
+      `Hey! Join IPOS and get ₹50 off your first order 🎉\nUse my code: ${profile.referralCode}\nhttps://posify.app`
     );
     Alert.alert("WhatsApp", "Opens WhatsApp with your referral link.");
   };
@@ -158,7 +158,7 @@ export default function ReferralScreen() {
           </Text>
           {[
             { step: "1", text: "Share your referral code or link",           icon: "share-2",       color: "#3B82F6" },
-            { step: "2", text: "Friend downloads POSify & signs up",          icon: "user-plus",     color: "#8B5CF6" },
+            { step: "2", text: "Friend downloads IPOS & signs up",          icon: "user-plus",     color: "#8B5CF6" },
             { step: "3", text: "Friend places their first order",             icon: "shopping-bag",  color: CUSTOMER_PRIMARY },
             { step: "4", text: "You get ₹50 + 100 loyalty points instantly", icon: "gift",          color: CUSTOMER_AMBER },
           ].map((h) => (

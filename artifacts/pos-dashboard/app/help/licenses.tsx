@@ -89,7 +89,7 @@ export default function LicensesScreen() {
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
           <Text style={[styles.headerTitle, { fontFamily: "Inter_700Bold" }]}>Open Source Licenses</Text>
-          <Text style={[styles.headerSub,   { fontFamily: "Inter_400Regular" }]}>{LICENSES.length} packages used in POSify</Text>
+          <Text style={[styles.headerSub,   { fontFamily: "Inter_400Regular" }]}>{LICENSES.length} packages used in IPOS</Text>
         </View>
         <View style={[styles.headerBadge, { backgroundColor: "rgba(255,255,255,0.2)" }]}>
           <Feather name="code" size={18} color="#fff" />
@@ -125,7 +125,7 @@ export default function LicensesScreen() {
         <View style={[styles.banner, { backgroundColor: "#1D4ED80D", borderColor: "#1D4ED825" }]}>
           <Feather name="heart" size={13} color="#1D4ED8" />
           <Text style={[styles.bannerText, { color: colors.foreground, fontFamily: "Inter_400Regular" }]}>
-            POSify is built on the shoulders of{" "}
+            IPOS is built on the shoulders of{" "}
             <Text style={{ fontFamily: "Inter_700Bold", color: "#1D4ED8" }}>amazing open-source software</Text>.
             We are grateful to all contributors.
           </Text>

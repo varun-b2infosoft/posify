@@ -188,7 +188,7 @@ function ReceiptPreview({
 
         {/* Powered by strip */}
         <Text style={[styles.previewMeta, { fontSize: 7, textAlign: "center", color: "#D1D5DB", marginTop: 4 }]}>
-          Powered by POSify
+          Powered by IPOS
         </Text>
       </View>
     </View>
@@ -282,7 +282,7 @@ export default function ReceiptSettingsScreen() {
   const [showThankYou, setShowThankYou] = useState(true);
   // Messages
   const [headerMsg, setHeaderMsg] = useState("Quality you can trust");
-  const [footerMsg, setFooterMsg] = useState("Visit again · Powered by POSify");
+  const [footerMsg, setFooterMsg] = useState("Visit again · Powered by IPOS");
   // Copies
   const [copies, setCopies] = useState(1);
   // Printer

@@ -132,7 +132,7 @@ export default function LoginScreen() {
               {step === "input" ? "Sign In" : "Verify OTP"}
             </Text>
             <Text style={[styles.headerSub, { fontFamily: "Inter_400Regular" }]}>
-              {step === "input" ? "Welcome back to POSify" : `Sent to ${masked}`}
+              {step === "input" ? "Welcome back to IPOS" : `Sent to ${masked}`}
             </Text>
           </View>
           {/* Step indicator */}
@@ -206,7 +206,7 @@ export default function LoginScreen() {
 
               <TouchableOpacity onPress={() => router.push("/auth/register" as any)} activeOpacity={0.8}>
                 <Text style={[styles.switchText, { fontFamily: "Inter_400Regular" }]}>
-                  <Text style={{ color: colors.mutedForeground }}>New to POSify? </Text>
+                  <Text style={{ color: colors.mutedForeground }}>New to IPOS? </Text>
                   <Text style={{ color: colors.primary, fontFamily: "Inter_600SemiBold" }}>Create Account</Text>
                 </Text>
               </TouchableOpacity>

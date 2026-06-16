@@ -53,7 +53,7 @@ export function DesktopNav() {
         </View>
         {width >= 220 && (
           <Text style={[styles.logoText, { color: colors.foreground, fontFamily: "Inter_700Bold" }]}>
-            POSify
+            IPOS
           </Text>
         )}
       </View>

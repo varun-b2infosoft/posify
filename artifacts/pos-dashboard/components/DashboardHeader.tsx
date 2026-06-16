@@ -72,7 +72,7 @@ export function DashboardHeader({ selectedRange, onRangeChange, notifCount, onMe
             <View>
               <View style={styles.logoRow}>
                 <Feather name="shopping-bag" size={16} color="rgba(255,255,255,0.9)" />
-                <Text style={[styles.appName, { fontFamily: "Inter_700Bold" }]}>POSify</Text>
+                <Text style={[styles.appName, { fontFamily: "Inter_700Bold" }]}>IPOS</Text>
               </View>
               <TouchableOpacity style={styles.shopSelector} onPress={() => setShopOpen(true)}>
                 <View style={[styles.shopDot, { backgroundColor: selectedShop?.color ?? "rgba(255,255,255,0.4)" }]} />

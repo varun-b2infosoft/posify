@@ -69,7 +69,7 @@ const GUIDES: Guide[] = [
       { icon: "credit-card",   text: "To record a credit sale, select Credit as the payment method during checkout." },
       { icon: "list",          text: "View all credit balances in Profile → Credit / Udhaar. Customers with dues appear at the top." },
       { icon: "check",         text: "When a customer pays, open their ledger and tap 'Record Payment' to clear the balance." },
-      { icon: "bell",          text: "POSify reminds you of overdue credit balances via Notifications." },
+      { icon: "bell",          text: "IPOS reminds you of overdue credit balances via Notifications." },
     ],
   },
   {

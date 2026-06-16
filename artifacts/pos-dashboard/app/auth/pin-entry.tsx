@@ -100,7 +100,7 @@ export default function PinEntryScreen() {
         <View style={[styles.logoIcon, { backgroundColor: colors.primary + "18" }]}>
           <Feather name="shopping-bag" size={28} color={colors.primary} />
         </View>
-        <Text style={[styles.appName, { color: colors.primary, fontFamily: "Inter_700Bold" }]}>POSify</Text>
+        <Text style={[styles.appName, { color: colors.primary, fontFamily: "Inter_700Bold" }]}>IPOS</Text>
         <Text style={[styles.greeting, { color: colors.foreground, fontFamily: "Inter_700Bold" }]}>
           Welcome back, {firstName}!
         </Text>

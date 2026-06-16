@@ -10,6 +10,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect } from "react";
+import { View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -25,6 +26,8 @@ function RootLayoutNav() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="index"               options={{ headerShown: false }} />
+      <Stack.Screen name="auth/splash"         options={{ headerShown: false, animation: "fade" }} />
+      <Stack.Screen name="auth/onboarding"    options={{ headerShown: false, animation: "fade" }} />
       <Stack.Screen name="auth/welcome"        options={{ headerShown: false, animation: "fade" }} />
       <Stack.Screen name="auth/login"          options={{ headerShown: false, animation: "slide_from_right" }} />
       <Stack.Screen name="auth/register"       options={{ headerShown: false, animation: "slide_from_right" }} />
@@ -100,7 +103,7 @@ export default function RootLayout() {
     }
   }, [fontsLoaded, fontError]);
 
-  if (!fontsLoaded && !fontError) return null;
+  if (!fontsLoaded && !fontError) return <View style={{ flex: 1, backgroundColor: "#4F46E5" }} />;
 
   return (
     <SafeAreaProvider>

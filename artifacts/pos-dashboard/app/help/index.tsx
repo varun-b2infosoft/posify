@@ -215,7 +215,7 @@ export default function HelpScreen() {
           <View style={[styles.aboutLogo, { backgroundColor: colors.primary + "18" }]}>
             <Feather name="shopping-bag" size={22} color={colors.primary} />
           </View>
-          <Text style={[styles.aboutName, { color: colors.foreground, fontFamily: "Inter_700Bold" }]}>POSify</Text>
+          <Text style={[styles.aboutName, { color: colors.foreground, fontFamily: "Inter_700Bold" }]}>IPOS</Text>
           <Text style={[styles.aboutVersion, { color: colors.mutedForeground, fontFamily: "Inter_400Regular" }]}>Version 2.0.0 · Build 20250413</Text>
 
           <View style={styles.aboutLinks}>
@@ -231,7 +231,7 @@ export default function HelpScreen() {
           </View>
 
           <Text style={[styles.copyright, { color: colors.mutedForeground, fontFamily: "Inter_400Regular" }]}>
-            © 2025 POSify Technologies Pvt. Ltd.{"\n"}All rights reserved.
+            © 2025 IPOS Technologies Pvt. Ltd.{"\n"}All rights reserved.
           </Text>
         </View>
 

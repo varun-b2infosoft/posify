@@ -14,6 +14,7 @@ import { router, useLocalSearchParams, useFocusEffect } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
+import { useLayout } from "@/hooks/useLayout";
 import {
   Customer, CreditTransaction,
   addCreditTransaction, getCustomer, getCreditTransactions, subscribeCustomers,
@@ -27,6 +28,7 @@ export default function CustomerCreditScreen() {
   const insets  = useSafeAreaInsets();
   const topPad  = Platform.OS === "web" ? 67 : insets.top;
   const botPad  = Platform.OS === "web" ? 24 : insets.bottom + 16;
+  const layout  = useLayout();
 
   const [customer, setCustomer] = useState<Customer | undefined>(() => getCustomer(id));
   const [txs,      setTxs]      = useState<CreditTransaction[]>(() => getCreditTransactions(id));
@@ -83,7 +85,7 @@ export default function CustomerCreditScreen() {
     if (tx.type === "wallet_out") return "Wallet Used";
     return "Transaction";
   };
-  const txAmtSign = (type: string) => type === "sale" || type === "wallet_in" ? "+" : "−";
+  const txAmtSign  = (type: string) => type === "sale" || type === "wallet_in" ? "+" : "−";
   const txAmtColor = (type: string) => type === "sale" ? "#EF4444" : type === "payment" ? "#10B981" : type === "wallet_in" ? "#3B82F6" : "#F59E0B";
 
   if (!customer) {
@@ -94,6 +96,218 @@ export default function CustomerCreditScreen() {
     );
   }
 
+  const AddTxModal = () => (
+    <Modal visible={modal} animationType={layout.isWide ? "fade" : "slide"} transparent onRequestClose={() => setModal(false)}>
+      <View style={[styles.overlay, layout.isWide && styles.overlayCenter]}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          style={layout.isWide ? { width: "100%", maxWidth: 460 } : { width: "100%" }}
+        >
+          <View style={[styles.sheet, layout.isWide && styles.dialog, { backgroundColor: colors.card }]}>
+            {!layout.isWide && <View style={styles.handle} />}
+
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 2 }}>
+              <Text style={[styles.sheetTitle, { color: colors.foreground, fontFamily: "Inter_700Bold" }]}>Add Transaction</Text>
+              {layout.isWide && (
+                <TouchableOpacity onPress={() => setModal(false)}>
+                  <Feather name="x" size={18} color={colors.mutedForeground} />
+                </TouchableOpacity>
+              )}
+            </View>
+
+            <View style={{ flexDirection: "row", gap: 8 }}>
+              {(["sale", "payment"] as const).map(t => (
+                <TouchableOpacity
+                  key={t}
+                  style={[styles.typeBtn, {
+                    borderColor: txType === t ? (t === "sale" ? "#EF4444" : "#10B981") : colors.border,
+                    backgroundColor: txType === t ? (t === "sale" ? "#FEE2E2" : "#D1FAE5") : colors.background,
+                  }]}
+                  onPress={() => setTxType(t)}
+                >
+                  <Feather name={t === "sale" ? "arrow-up-right" : "arrow-down-left"} size={14} color={t === "sale" ? "#EF4444" : "#10B981"} />
+                  <Text style={[styles.typeBtnText, { color: t === "sale" ? "#EF4444" : "#10B981", fontFamily: "Inter_600SemiBold" }]}>
+                    {t === "sale" ? "Credit Sale" : "Record Payment"}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <Text style={[styles.label, { color: colors.foreground, fontFamily: "Inter_500Medium" }]}>Amount (₹) *</Text>
+            <TextInput
+              style={[styles.input, { backgroundColor: colors.background, borderColor: errors.amount ? "#EF4444" : colors.border, color: colors.foreground, fontFamily: "Inter_400Regular" }]}
+              placeholder="Enter amount"
+              placeholderTextColor={colors.mutedForeground}
+              value={amount}
+              onChangeText={setAmount}
+              keyboardType="numeric"
+            />
+            {errors.amount && <Text style={styles.errText}>{errors.amount}</Text>}
+
+            <Text style={[styles.label, { color: colors.foreground, fontFamily: "Inter_500Medium" }]}>Note (optional)</Text>
+            <TextInput
+              style={[styles.input, { backgroundColor: colors.background, borderColor: colors.border, color: colors.foreground, fontFamily: "Inter_400Regular" }]}
+              placeholder="e.g. Grocery items, UPI payment..."
+              placeholderTextColor={colors.mutedForeground}
+              value={note}
+              onChangeText={setNote}
+            />
+
+            <View style={{ flexDirection: "row", gap: 10, marginTop: 4 }}>
+              <TouchableOpacity style={[styles.cancelBtn, { borderColor: colors.border }]} onPress={() => setModal(false)}>
+                <Text style={{ color: colors.mutedForeground, fontFamily: "Inter_600SemiBold" }}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.saveBtn, { backgroundColor: txType === "sale" ? "#EF4444" : "#10B981" }]} onPress={handleAdd}>
+                <Text style={{ color: "#fff", fontFamily: "Inter_700Bold" }}>Save</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </View>
+    </Modal>
+  );
+
+  const TxList = () => (
+    <>
+      {txsWithBalance.length === 0 && (
+        <View style={{ alignItems: "center", paddingTop: 60 }}>
+          <Feather name="credit-card" size={40} color={colors.mutedForeground} />
+          <Text style={{ color: colors.mutedForeground, marginTop: 12, fontFamily: "Inter_400Regular" }}>No credit transactions yet</Text>
+        </View>
+      )}
+      {txsWithBalance.map((tx, i) => {
+        const ic      = txIcon(tx.type);
+        const isWallet = tx.type === "wallet_in" || tx.type === "wallet_out";
+        return (
+          <View
+            key={tx.id}
+            style={[styles.txRow, { backgroundColor: colors.card, borderColor: colors.border, borderTopWidth: i === 0 ? 1 : 0 }]}
+          >
+            <View style={[styles.txIcon, { backgroundColor: ic.bg }]}>
+              <Feather name={ic.icon} size={14} color={ic.color} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                <Text style={[styles.txNote, { color: colors.foreground, fontFamily: "Inter_500Medium" }]} numberOfLines={1}>
+                  {txLabel(tx)}
+                </Text>
+                {isWallet && (
+                  <View style={{ paddingHorizontal: 5, paddingVertical: 1, borderRadius: 4, backgroundColor: "#DBEAFE" }}>
+                    <Text style={{ color: "#1D4ED8", fontSize: 9, fontFamily: "Inter_600SemiBold" }}>WALLET</Text>
+                  </View>
+                )}
+              </View>
+              <Text style={[styles.txDate, { color: colors.mutedForeground, fontFamily: "Inter_400Regular" }]}>
+                {new Date(tx.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+              </Text>
+            </View>
+            <View style={{ alignItems: "flex-end" }}>
+              <Text style={[styles.txAmount, { color: txAmtColor(tx.type), fontFamily: "Inter_700Bold" }]}>
+                {txAmtSign(tx.type)}₹{tx.amount.toLocaleString()}
+              </Text>
+              {!isWallet && (
+                <Text style={[styles.txBalance, { color: colors.mutedForeground, fontFamily: "Inter_400Regular" }]}>
+                  Due ₹{tx.balance.toLocaleString()}
+                </Text>
+              )}
+            </View>
+          </View>
+        );
+      })}
+    </>
+  );
+
+  /* ═══════════════════ DESKTOP ═══════════════════ */
+  if (layout.isWide) {
+    return (
+      <View style={[styles.root, { backgroundColor: colors.background }]}>
+        <View style={[dk.header, { backgroundColor: "#EF4444", paddingTop: topPad }]}>
+          <TouchableOpacity onPress={() => router.back()} style={{ padding: 4 }}>
+            <Feather name="arrow-left" size={20} color="#fff" />
+          </TouchableOpacity>
+          <View style={[dk.avatar, { backgroundColor: "rgba(255,255,255,0.25)" }]}>
+            <Text style={[dk.avatarText, { fontFamily: "Inter_700Bold" }]}>{initials(customer.name)}</Text>
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={[dk.headerTitle, { fontFamily: "Inter_700Bold" }]}>{customer.name}</Text>
+            <Text style={[dk.headerSub, { fontFamily: "Inter_400Regular" }]}>{customer.phone}</Text>
+          </View>
+          <TouchableOpacity
+            style={[dk.addTxBtn, { backgroundColor: "rgba(255,255,255,0.2)" }]}
+            onPress={() => setModal(true)}
+          >
+            <Feather name="plus" size={15} color="#fff" />
+            <Text style={[dk.addTxText, { fontFamily: "Inter_600SemiBold" }]}>Add Transaction</Text>
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView contentContainerStyle={[dk.body, { paddingBottom: botPad + 24 }]}>
+          {/* Left: balance summary */}
+          <View style={dk.leftCol}>
+            <View style={[dk.card, { backgroundColor: customer.creditBalance > 0 ? "#FEF2F2" : "#F0FDF4", borderColor: customer.creditBalance > 0 ? "#FECACA" : "#BBF7D0" }]}>
+              <Text style={[dk.balanceLabel, { color: customer.creditBalance > 0 ? "#991B1B" : "#166534", fontFamily: "Inter_400Regular" }]}>
+                {customer.creditBalance > 0 ? "Outstanding Balance" : "No dues — all clear!"}
+              </Text>
+              <Text style={[dk.balanceAmt, { color: customer.creditBalance > 0 ? "#DC2626" : "#15803D", fontFamily: "Inter_700Bold" }]}>
+                ₹{customer.creditBalance.toLocaleString()}
+              </Text>
+              {customer.creditBalance > 0 && (
+                <TouchableOpacity
+                  style={[dk.recordBtn, { backgroundColor: "#10B981" }]}
+                  onPress={() => { setTxType("payment"); setModal(true); }}
+                >
+                  <Feather name="check-circle" size={14} color="#fff" />
+                  <Text style={[dk.recordBtnText, { fontFamily: "Inter_700Bold" }]}>Record Payment</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {customer.walletBalance > 0 && (
+              <View style={[dk.card, { backgroundColor: "#EFF6FF", borderColor: "#BFDBFE" }]}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                  <Feather name="pocket" size={16} color="#3B82F6" />
+                  <Text style={[{ color: "#1D4ED8", fontFamily: "Inter_600SemiBold", fontSize: 14 }]}>Wallet Balance</Text>
+                </View>
+                <Text style={[{ color: "#1D4ED8", fontFamily: "Inter_700Bold", fontSize: 24 }]}>₹{customer.walletBalance.toLocaleString()}</Text>
+              </View>
+            )}
+
+            <View style={[dk.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <Text style={[dk.cardTitle, { color: colors.foreground, fontFamily: "Inter_700Bold" }]}>Summary</Text>
+              {[
+                { label: "Total Purchases",   val: `₹${customer.totalPurchases.toLocaleString()}`,  color: "#4F46E5" },
+                { label: "Transactions",       val: txs.length,                                     color: "#F59E0B" },
+                { label: "Credit Sales",       val: txs.filter(t => t.type === "sale").length,      color: "#EF4444" },
+                { label: "Payments Made",      val: txs.filter(t => t.type === "payment").length,   color: "#10B981" },
+              ].map(s => (
+                <View key={s.label} style={dk.sumRow}>
+                  <Text style={[dk.sumLabel, { color: colors.mutedForeground, fontFamily: "Inter_400Regular" }]}>{s.label}</Text>
+                  <Text style={[dk.sumVal, { color: s.color, fontFamily: "Inter_700Bold" }]}>{s.val}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          {/* Right: transaction history */}
+          <View style={dk.rightCol}>
+            <View style={[dk.card, { backgroundColor: colors.card, borderColor: colors.border, padding: 0, overflow: "hidden" }]}>
+              <View style={{ padding: 16, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: colors.border }}>
+                <Text style={[dk.cardTitle, { color: colors.foreground, fontFamily: "Inter_700Bold" }]}>Transaction History</Text>
+                <Text style={[{ color: colors.mutedForeground, fontFamily: "Inter_400Regular", fontSize: 12, marginTop: 2 }]}>
+                  {txs.length} entries
+                </Text>
+              </View>
+              <TxList />
+            </View>
+          </View>
+        </ScrollView>
+
+        <AddTxModal />
+      </View>
+    );
+  }
+
+  /* ═══════════════════ MOBILE ═══════════════════ */
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <View style={[styles.header, { backgroundColor: "#EF4444", paddingTop: topPad }]}>
@@ -126,8 +340,8 @@ export default function CustomerCreditScreen() {
             <View style={[styles.walletBadge, { backgroundColor: "#DBEAFE", borderColor: "#BFDBFE" }]}>
               <Feather name="pocket" size={12} color="#3B82F6" />
               <View>
-                <Text style={[{ color: "#1D4ED8", fontSize: 14, fontFamily: "Inter_700Bold" }]}>₹{customer.walletBalance.toLocaleString()}</Text>
-                <Text style={[{ color: "#1D4ED8", fontSize: 10, fontFamily: "Inter_400Regular" }]}>Wallet Balance</Text>
+                <Text style={{ color: "#1D4ED8", fontSize: 14, fontFamily: "Inter_700Bold" }}>₹{customer.walletBalance.toLocaleString()}</Text>
+                <Text style={{ color: "#1D4ED8", fontSize: 10, fontFamily: "Inter_400Regular" }}>Wallet Balance</Text>
               </View>
             </View>
           )}
@@ -144,110 +358,35 @@ export default function CustomerCreditScreen() {
       </View>
 
       <ScrollView contentContainerStyle={{ padding: 12, gap: 0, paddingBottom: botPad + 24 }}>
-        {txsWithBalance.length === 0 && (
-          <View style={{ alignItems: "center", paddingTop: 60 }}>
-            <Feather name="credit-card" size={40} color={colors.mutedForeground} />
-            <Text style={{ color: colors.mutedForeground, marginTop: 12, fontFamily: "Inter_400Regular" }}>No credit transactions yet</Text>
-          </View>
-        )}
-        {txsWithBalance.map((tx, i) => {
-          const ic = txIcon(tx.type);
-          const isWallet = tx.type === "wallet_in" || tx.type === "wallet_out";
-          return (
-            <View
-              key={tx.id}
-              style={[styles.txRow, { backgroundColor: colors.card, borderColor: colors.border, borderTopWidth: i === 0 ? 1 : 0 }]}
-            >
-              <View style={[styles.txIcon, { backgroundColor: ic.bg }]}>
-                <Feather name={ic.icon} size={14} color={ic.color} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                  <Text style={[styles.txNote, { color: colors.foreground, fontFamily: "Inter_500Medium" }]} numberOfLines={1}>
-                    {txLabel(tx)}
-                  </Text>
-                  {isWallet && (
-                    <View style={[{ paddingHorizontal: 5, paddingVertical: 1, borderRadius: 4, backgroundColor: "#DBEAFE" }]}>
-                      <Text style={{ color: "#1D4ED8", fontSize: 9, fontFamily: "Inter_600SemiBold" }}>WALLET</Text>
-                    </View>
-                  )}
-                </View>
-                <Text style={[styles.txDate, { color: colors.mutedForeground, fontFamily: "Inter_400Regular" }]}>
-                  {new Date(tx.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
-                </Text>
-              </View>
-              <View style={{ alignItems: "flex-end" }}>
-                <Text style={[styles.txAmount, { color: txAmtColor(tx.type), fontFamily: "Inter_700Bold" }]}>
-                  {txAmtSign(tx.type)}₹{tx.amount.toLocaleString()}
-                </Text>
-                {!isWallet && (
-                  <Text style={[styles.txBalance, { color: colors.mutedForeground, fontFamily: "Inter_400Regular" }]}>
-                    Due ₹{tx.balance.toLocaleString()}
-                  </Text>
-                )}
-              </View>
-            </View>
-          );
-        })}
+        <TxList />
       </ScrollView>
 
-      <Modal visible={modal} animationType="slide" transparent onRequestClose={() => setModal(false)}>
-        <View style={styles.overlay}>
-          <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ width: "100%" }}>
-            <View style={[styles.sheet, { backgroundColor: colors.card }]}>
-              <View style={styles.handle} />
-              <Text style={[styles.sheetTitle, { color: colors.foreground, fontFamily: "Inter_700Bold" }]}>Add Transaction</Text>
-
-              <View style={{ flexDirection: "row", gap: 8 }}>
-                {(["sale", "payment"] as const).map(t => (
-                  <TouchableOpacity
-                    key={t}
-                    style={[styles.typeBtn, { borderColor: txType === t ? (t === "sale" ? "#EF4444" : "#10B981") : colors.border, backgroundColor: txType === t ? (t === "sale" ? "#FEE2E2" : "#D1FAE5") : colors.background }]}
-                    onPress={() => setTxType(t)}
-                  >
-                    <Feather name={t === "sale" ? "arrow-up-right" : "arrow-down-left"} size={14} color={t === "sale" ? "#EF4444" : "#10B981"} />
-                    <Text style={[styles.typeBtnText, { color: t === "sale" ? "#EF4444" : "#10B981", fontFamily: "Inter_600SemiBold" }]}>
-                      {t === "sale" ? "Credit Sale" : "Record Payment"}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-
-              <Text style={[styles.label, { color: colors.foreground, fontFamily: "Inter_500Medium" }]}>Amount (₹) *</Text>
-              <TextInput
-                style={[styles.input, { backgroundColor: colors.background, borderColor: errors.amount ? "#EF4444" : colors.border, color: colors.foreground, fontFamily: "Inter_400Regular" }]}
-                placeholder="Enter amount"
-                placeholderTextColor={colors.mutedForeground}
-                value={amount}
-                onChangeText={setAmount}
-                keyboardType="numeric"
-              />
-              {errors.amount && <Text style={styles.errText}>{errors.amount}</Text>}
-
-              <Text style={[styles.label, { color: colors.foreground, fontFamily: "Inter_500Medium" }]}>Note (optional)</Text>
-              <TextInput
-                style={[styles.input, { backgroundColor: colors.background, borderColor: colors.border, color: colors.foreground, fontFamily: "Inter_400Regular" }]}
-                placeholder="e.g. Grocery items, UPI payment..."
-                placeholderTextColor={colors.mutedForeground}
-                value={note}
-                onChangeText={setNote}
-              />
-
-              <View style={{ flexDirection: "row", gap: 10, marginTop: 4 }}>
-                <TouchableOpacity style={[styles.cancelBtn, { borderColor: colors.border }]} onPress={() => setModal(false)}>
-                  <Text style={{ color: colors.mutedForeground, fontFamily: "Inter_600SemiBold" }}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={[styles.saveBtn, { backgroundColor: txType === "sale" ? "#EF4444" : "#10B981" }]} onPress={handleAdd}>
-                  <Text style={{ color: "#fff", fontFamily: "Inter_700Bold" }}>Save</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </KeyboardAvoidingView>
-        </View>
-      </Modal>
+      <AddTxModal />
     </View>
   );
 }
+
+const dk = StyleSheet.create({
+  header:       { flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 24, paddingBottom: 16 },
+  avatar:       { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center" },
+  avatarText:   { fontSize: 13, color: "#fff" },
+  headerTitle:  { fontSize: 20, color: "#fff" },
+  headerSub:    { fontSize: 12, color: "#fecaca", marginTop: 1 },
+  addTxBtn:     { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10 },
+  addTxText:    { color: "#fff", fontSize: 13 },
+  body:         { flexDirection: "row", padding: 20, gap: 16, alignItems: "flex-start" },
+  leftCol:      { flex: 4, gap: 14 },
+  rightCol:     { flex: 6, gap: 14 },
+  card:         { borderRadius: 14, borderWidth: 1, padding: 16, gap: 12 },
+  cardTitle:    { fontSize: 15 },
+  balanceLabel: { fontSize: 12 },
+  balanceAmt:   { fontSize: 32 },
+  recordBtn:    { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 10, justifyContent: "center" },
+  recordBtnText:{ color: "#fff", fontSize: 13 },
+  sumRow:       { flexDirection: "row", justifyContent: "space-between", paddingVertical: 6, borderTopWidth: 1, borderTopColor: "transparent" },
+  sumLabel:     { fontSize: 13 },
+  sumVal:       { fontSize: 14 },
+});
 
 const styles = StyleSheet.create({
   root:          { flex: 1 },
@@ -270,9 +409,11 @@ const styles = StyleSheet.create({
   txAmount:      { fontSize: 15 },
   txBalance:     { fontSize: 11 },
   overlay:       { flex: 1, backgroundColor: "#00000060", justifyContent: "flex-end" },
+  overlayCenter: { justifyContent: "center", alignItems: "center", paddingHorizontal: 24 },
   sheet:         { borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, gap: 10 },
+  dialog:        { borderRadius: 20, borderTopLeftRadius: 20, borderTopRightRadius: 20 },
   handle:        { width: 40, height: 4, borderRadius: 2, backgroundColor: "#CBD5E1", alignSelf: "center", marginBottom: 8 },
-  sheetTitle:    { fontSize: 18, marginBottom: 4 },
+  sheetTitle:    { fontSize: 18 },
   typeBtn:       { flex: 1, flexDirection: "row", alignItems: "center", gap: 6, padding: 10, borderRadius: 10, borderWidth: 1.5 },
   typeBtnText:   { fontSize: 13 },
   label:         { fontSize: 13, marginBottom: 2 },
