@@ -423,7 +423,7 @@ export function PaymentModal({ visible, total, onClose, onSuccess, onDelivery, i
                       </View>
                     ) : (
                       <View style={[d.totalBadge, { backgroundColor: "rgba(255,255,255,0.18)" }]}>
-                        <Feather name="receipt" size={20} color="#fff" />
+                        <Feather name={"receipt" as any} size={20} color="#fff" />
                       </View>
                     )}
                   </View>
